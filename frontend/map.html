@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tourist Explorer Map</title>
+    <link rel="icon" href="data:,">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+
+        /* Popup styling */
+        .popup-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+        .popup-desc {
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <script>
+        // -----------------------------------------
+        // 1. Initialize Map
+        // -----------------------------------------
+        const map = L.map("map").setView([53.3498, -6.2603], 13);  // Dublin default
+
+        // -----------------------------------------
+        // 2. Add OSM Tile Layer
+        // -----------------------------------------
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            attribution: "&copy; OpenStreetMap contributors"
+        }).addTo(map);
+
+        // -----------------------------------------
+        // 3. Load Places from API
+        // -----------------------------------------
+        fetch("http://127.0.0.1:8000/api/places/")
+            .then(response => response.json())
+            .then(data => {
+                console.log("Loaded places:", data);
+
+                const markers = [];
+
+                const features = data.features || data; // handle both cases
+
+                    features.forEach(feature => {
+
+                    const coords = feature.geometry.coordinates; // [lng, lat]
+                    const props = feature.properties;
+
+                    // Convert to Leaflet LatLng
+                    const latlng = [coords[1], coords[0]];
+
+                    // -----------------------------------------
+                    // 4. Create Marker
+                    // -----------------------------------------
+                    const marker = L.marker(latlng).addTo(map);
+
+                    markers.push(marker);
+
+                    // -----------------------------------------
+                    // 5. Create Popup Content
+                    // -----------------------------------------
+                    const popupHTML = `
+                        <div class="popup-content">
+                            <div class="popup-title">${props.name}</div>
+                            <div class="popup-desc">${props.description ?? ""}</div>
+                            <strong>Price:</strong> €${props.price}<br>
+                            <strong>Time Required:</strong> ${props.time_required} mins<br>
+                            <strong>Category:</strong> ${props.category.name}<br>
+                        </div>
+                    `;
+
+                    marker.bindPopup(popupHTML);
+                });
+
+                // -----------------------------------------
+                // 6. Auto-fit map to markers
+                // -----------------------------------------
+                if (markers.length > 0) {
+                    const group = L.featureGroup(markers);
+                    map.fitBounds(group.getBounds(), { padding: [20, 20] });
+                }
+            })
+            .catch(err => console.error("Error loading places:", err));
+
+    </script>
+
+</body>
+</html>
