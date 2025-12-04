@@ -1,0 +1,35 @@
+Features:
+
+Account related features:
+Authentication(admin account can use crud on places to manage data through frontend).
+Tourist creates account
+Website shows account info
+Potententially can show places that have been visited(optional feature)
+Places can be marked with points and once you visit them you can gain points and earn rewards(very optional)
+
+User(Tourist) features:
+1. Tourist sees places to visit on map.
+2. There are a wide range of places such as cafe,restaurant,museum,activities,famous places etc.
+3. Each place is uniquely seperated by visual differences of the markers on the map.
+4. Each place holds info about price,popularity(how many other users visited),ratings,time it takes up
+5. Tourist can select how many people are travelling and it will filter places suited for x amount of people
+6. Tourist can input a budget to give the best route based on the budget.
+7. Tourist can input the amount of time they have and it can give the best route.
+8. The budget, amount of time, amount of people they have can be filtered at the same time to generate the best route
+9. When generating the route it will draw a line to each place with a starting point and end point
+10. It will show when to leave each place and when to arrive at another place
+11. Can have checkbox to filter whether you want to include places to eat(will add place to eat breakfast,lunch,dinner
+in middle of route based on time of day if checkbox is ticked)
+12. Tourist can filter places near them
+13. Tourist can filter places by areas(polygons)
+14. Tourist can favourite places and give ratings
+15. Filter checkbox for child friendly
+16. Filter checkbox for wheelchair access
+17. User Location Tracking (Live GPS)
+18. Generate a Full Dynamic Itinerary (Route Planner)
+19. Heatmap of popular attractions(optional)
+20. Cluster map markers(Clustering of map markers)
+21. Travel Mode Filtering(walking,driving)
+22. User Analytics (admin-only)
+23. Deploy the Backend with Docker + Cloud (azure)
+24. Tourist can add photos from place they visited(stored on profile)
