@@ -139,3 +139,4 @@ STATIC_URL = 'static/'
 CORS_ALLOW_ALL_ORIGINS = True
 GDAL_LIBRARY_PATH = r"C:\Users\demet\miniconda3\envs\tourist\Library\bin\gdal.dll"
 GEOS_LIBRARY_PATH = r"C:\Users\demet\miniconda3\envs\tourist\Library\bin\geos_c.dll"
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
