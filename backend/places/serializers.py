@@ -1,3 +1,4 @@
+# places/serializers.py
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from .models import (
@@ -6,7 +7,7 @@ from .models import (
     Rating,
     Itinerary,
     ItineraryStop,
-    Favorite
+ 
 )
 
 
@@ -149,13 +150,4 @@ class PlaceListSerializer(GeoFeatureModelSerializer):
         return 0
 
 
-# ----------------------------
-# FAVORITE SERIALIZER
-# ----------------------------
-class FavoriteSerializer(serializers.ModelSerializer):
-    place = PlaceListSerializer(read_only=True)
 
-    class Meta:
-        model = Favorite
-        fields = ['id', 'place', 'created_at']
-        read_only_fields = ['user', 'created_at']

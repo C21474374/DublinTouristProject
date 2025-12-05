@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../hooks/useAuth';
 import '../styles/Favorites.scss';
@@ -7,20 +8,25 @@ const API_BASE = 'http://localhost:8000/api';
 
 export default function Favorites() {
   const { token } = useAuth();
+  const navigate = useNavigate();
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchFavorites();
+    if (token) {
+      fetchFavorites();
+    }
   }, [token]);
 
   const fetchFavorites = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE}/favorites/`);
+      const response = await axios.get(`${API_BASE}/favourites/`, {
+        headers: { Authorization: `Token ${token}` }
+      });
       setFavorites(response.data);
     } catch (error) {
-      console.error('Error fetching favorites:', error);
+      console.error('Error fetching favourites:', error);
     } finally {
       setLoading(false);
     }
@@ -28,10 +34,12 @@ export default function Favorites() {
 
   const removeFavorite = async (placeId) => {
     try {
-      await axios.delete(`${API_BASE}/favorites/${placeId}/`);
-      setFavorites(favorites.filter(fav => fav.id !== placeId));
+      await axios.delete(`${API_BASE}/favourites/${placeId}/`, {
+        headers: { Authorization: `Token ${token}` }
+      });
+      setFavorites(favorites.filter(fav => fav.place.id !== placeId));
     } catch (error) {
-      console.error('Error removing favorite:', error);
+      console.error('Error removing favourite:', error);
     }
   };
 
@@ -43,8 +51,8 @@ export default function Favorites() {
     return (
       <div className="favorites-page">
         <div className="empty-state">
-          <h2>❤️ No Favorites Yet</h2>
-          <p>Add places to your favorites on the map to see them here!</p>
+          <h2>❤️ No Favourites Yet</h2>
+          <p>Add places to your favourites on the map to see them here!</p>
         </div>
       </div>
     );
@@ -53,32 +61,34 @@ export default function Favorites() {
   return (
     <div className="favorites-page">
       <div className="favorites-header">
-        <h1>❤️ My Favorites</h1>
+        <h1>❤️ My Favourites</h1>
         <p>{favorites.length} place{favorites.length !== 1 ? 's' : ''} saved</p>
       </div>
 
       <div className="favorites-grid">
-        {favorites.map((place) => {
+        {favorites.map((favorite) => {
+          const place = favorite.place;
           const props = place.properties || place;
           const avgRating = props.average_rating || 0;
+          const placeId = place.id;
 
           return (
-            <div key={place.id} className="favorite-card">
+            <div key={favorite.id} className="favorite-card">
               <div className="card-header">
                 <div className="card-title">
-                  <h3>{props.name}</h3>
-                  <p className="category">{props.category_name || props.category}</p>
+                  <h3>{props.name || 'Unknown'}</h3>
+                  <p className="category">{props.category_name || 'N/A'}</p>
                 </div>
                 <button
                   className="remove-btn"
-                  onClick={() => removeFavorite(place.id)}
-                  title="Remove from favorites"
+                  onClick={() => removeFavorite(placeId)}
+                  title="Remove from favourites"
                 >
                   ✕
                 </button>
               </div>
 
-              <p className="description">{props.description}</p>
+              <p className="description">{props.description || 'No description'}</p>
 
               <div className="card-stats">
                 <div className="stat-item">
@@ -104,7 +114,7 @@ export default function Favorites() {
                   <span className="stat-icon">💰</span>
                   <div className="stat-content">
                     <span className="stat-label">Price</span>
-                    <span className="stat-value">€{props.price}</span>
+                    <span className="stat-value">€{props.price || '0'}</span>
                   </div>
                 </div>
 
@@ -112,7 +122,7 @@ export default function Favorites() {
                   <span className="stat-icon">⏱️</span>
                   <div className="stat-content">
                     <span className="stat-label">Duration</span>
-                    <span className="stat-value">{props.time_required} min</span>
+                    <span className="stat-value">{props.time_required || '0'} min</span>
                   </div>
                 </div>
 
@@ -120,7 +130,7 @@ export default function Favorites() {
                   <span className="stat-icon">👥</span>
                   <div className="stat-content">
                     <span className="stat-label">Popularity</span>
-                    <span className="stat-value">{props.popularity} visits</span>
+                    <span className="stat-value">{props.popularity || '0'} visits</span>
                   </div>
                 </div>
               </div>
@@ -133,6 +143,24 @@ export default function Favorites() {
                   <span className="amenity-tag wheelchair">♿ Wheelchair Access</span>
                 )}
               </div>
+
+              <button
+                className="view-map-btn"
+                onClick={() => {
+                  const coords = place.geometry?.coordinates || [0, 0];
+                  const placeData = {
+                    id: placeId,
+                    coordinates: coords,
+                    name: props.name,
+                    properties: props,
+                    geometry: place.geometry,
+                  };
+                  sessionStorage.setItem('centerPlace', JSON.stringify(placeData));
+                  navigate('/');
+                }}
+              >
+                📍 View on Map →
+              </button>
             </div>
           );
         })}

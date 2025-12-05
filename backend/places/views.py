@@ -1,3 +1,6 @@
+# places/views.py
+
+
 from django.shortcuts import get_object_or_404
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
@@ -8,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.exceptions import PermissionDenied
 
-from .models import Category, Place, Rating, Itinerary, ItineraryStop, Favorite
+from .models import Category, Place, Rating, Itinerary, ItineraryStop
 from .serializers import (
     CategorySerializer,
     PlaceSerializer,
@@ -16,7 +19,6 @@ from .serializers import (
     RatingSerializer,
     ItinerarySerializer,
     ItineraryStopSerializer,
-    FavoriteSerializer,
 )
 
 
@@ -329,55 +331,3 @@ class ItineraryStopDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
         if self.request.method in ("PATCH", "PUT"):
             return ItineraryStopWriteSerializer
         return ItineraryStopSerializer
-
-
-# ---------------------------------------------------
-# FAVORITES: LIST + CREATE FOR CURRENT USER
-# ---------------------------------------------------
-class FavoriteListCreateAPIView(generics.ListCreateAPIView):
-    """
-    GET  /api/favorites/
-    POST /api/favorites/ (with {"place": place_id} in body)
-    """
-    serializer_class = FavoriteSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return Favorite.objects.filter(user=self.request.user).select_related('place')
-
-    def perform_create(self, serializer):
-        place_id = self.request.data.get('place')
-        
-        if not place_id:
-            raise serializers.ValidationError({"place": "place_id is required"})
-        
-        try:
-            place = Place.objects.get(id=place_id)
-        except Place.DoesNotExist:
-            raise serializers.ValidationError({"place": "Place not found"})
-        
-        # Check if already favorited
-        existing = Favorite.objects.filter(user=self.request.user, place=place).first()
-        if existing:
-            raise serializers.ValidationError({"place": "Already in favorites"})
-        
-        serializer.save(user=self.request.user, place=place)
-
-
-# ---------------------------------------------------
-# SINGLE FAVORITE (RETRIEVE / DELETE)
-# ---------------------------------------------------
-class FavoriteDetailAPIView(generics.RetrieveDestroyAPIView):
-    """
-    GET    /api/favorites/{place_id}/
-    DELETE /api/favorites/{place_id}/
-    """
-    serializer_class = FavoriteSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return Favorite.objects.filter(user=self.request.user).select_related('place')
-
-    def get_object(self):
-        place_id = self.kwargs.get('pk')
-        return get_object_or_404(Favorite, user=self.request.user, place_id=place_id)

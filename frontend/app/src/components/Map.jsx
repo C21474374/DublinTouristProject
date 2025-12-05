@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import '../styles/Map.scss';
 import RatingModal from './RatingModal';
 import PlaceDetailsModal from './PlaceDetailsModal';
+import { useAuth } from '../hooks/useAuth';
 
 const API_BASE = 'http://localhost:8000/api';
 
@@ -25,6 +26,7 @@ export default function Map() {
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [placeDetails, setPlaceDetails] = useState(null);
   const [showPlaceModal, setShowPlaceModal] = useState(false);
+  const { token } = useAuth();
 
   // Load favorites from localStorage on mount
   useEffect(() => {
@@ -100,6 +102,21 @@ export default function Map() {
     }
   }, []);
 
+  // Check if we need to center on a specific place from Favorites
+  useEffect(() => {
+    const centerPlace = sessionStorage.getItem('centerPlace');
+    if (centerPlace && mapRef.current && markersRef.current.length > 0) {
+      try {
+        const place = JSON.parse(centerPlace);
+        handlePlaceCardClick(place);
+        sessionStorage.removeItem('centerPlace');
+      } catch (error) {
+        console.error('Error centering on place:', error);
+        sessionStorage.removeItem('centerPlace');
+      }
+    }
+  }, [markersRef.current.length]);
+
   // Fetch places when filters change
   useEffect(() => {
     fetchPlaces();
@@ -149,14 +166,26 @@ export default function Map() {
           </div>
         `;
 
-        const favBtn = popupContent.querySelector('.favorite-popup-btn');
-        favBtn.onclick = () => toggleFavorite(place);
+        // Store place data on the marker for later access
+        marker.placeData = place;
 
-        const detailsBtn = popupContent.querySelector('.details-popup-btn');
-        detailsBtn.onclick = () => {
-          setSelectedPlace(place);
-          setShowPlaceModal(true);
-        };
+        // Add event listener to popup after it opens
+        marker.on('popupopen', () => {
+          const popupElement = marker.getPopup().getElement();
+          
+          const favBtn = popupElement.querySelector('.favorite-popup-btn');
+          favBtn.onclick = (e) => {
+            e.stopPropagation();
+            toggleFavorite(marker.placeData);
+          };
+
+          const detailsBtn = popupElement.querySelector('.details-popup-btn');
+          detailsBtn.onclick = (e) => {
+            e.stopPropagation();
+            fetchPlaceDetails(marker.placeData);
+            setShowPlaceModal(true);
+          };
+        });
 
         marker.bindPopup(popupContent);
         markersRef.current.push(marker);
@@ -164,7 +193,99 @@ export default function Map() {
         console.error('Error adding marker:', error);
       }
     });
+  }, [places, favorites]); // <-- IMPORTANT: Add favorites here
+
+  // Replace the two useEffects with this:
+  useEffect(() => {
+    if (token) {
+      console.log('🔄 Fetching favourites with token:', token);
+      fetchFavorites();
+    }
+  }, [token]);
+
+  // Render markers whenever places or favorites change
+  useEffect(() => {
+    console.log('📍 Rendering markers. Places:', places.length, 'Favourites:', favorites.length);
+    if (places.length > 0) {
+      renderMarkers();
+    }
   }, [places, favorites]);
+
+  const renderMarkers = () => {
+    console.log('🎨 renderMarkers called. Favorites:', favorites);
+    console.log('📋 Favorite IDs:', favorites.map(f => f.id)); // ADD THIS LINE
+    
+    if (!mapRef.current) {
+      console.warn('⚠️ Map ref not ready');
+      return;
+    }
+
+    markersRef.current.forEach(marker => {
+      mapRef.current.removeLayer(marker);
+    });
+    markersRef.current = [];
+
+    places.forEach((place) => {
+      const coords = place.geometry?.coordinates || 
+                     place.location?.coordinates || 
+                     [place.longitude, place.latitude];
+
+      if (!coords || coords.length < 2) return;
+
+      try {
+        const isFavorite = favorites.some(fav => fav.id === place.id);
+        console.log(`✅ Place: ${place.id} - "${place.properties?.name}" - Favourite: ${isFavorite}`);
+        
+        const marker = L.marker([coords[1], coords[0]]).addTo(mapRef.current);
+        const properties = place.properties || place;
+        const avgRating = properties.average_rating || 0;
+
+        const popupContent = document.createElement('div');
+        popupContent.className = 'map-popup';
+        popupContent.innerHTML = `
+          <h5>${properties.name || 'Unknown'}</h5>
+          <p style="margin: 0.5rem 0; font-size: 0.85rem; color: #666;">
+            <span style="color: #ffc107;">
+              ${'★'.repeat(Math.round(avgRating))}${'☆'.repeat(5 - Math.round(avgRating))}
+            </span>
+            (${avgRating.toFixed(1)}/5)
+          </p>
+          <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+            <button class="favorite-popup-btn" style="flex: 1; padding: 0.5rem; font-size: 0.85rem;">
+              ${isFavorite ? '❤️' : '🤍'}
+            </button>
+            <button class="details-popup-btn" style="flex: 1; padding: 0.5rem; font-size: 0.85rem; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
+              View More →
+            </button>
+          </div>
+        `;
+
+        marker.placeData = place;
+
+        marker.on('popupopen', () => {
+          const popupElement = marker.getPopup().getElement();
+          
+          const favBtn = popupElement.querySelector('.favorite-popup-btn');
+          favBtn.onclick = (e) => {
+            e.stopPropagation();
+            toggleFavorite(marker.placeData);
+          };
+
+          const detailsBtn = popupElement.querySelector('.details-popup-btn');
+          detailsBtn.onclick = (e) => {
+            e.stopPropagation();
+            fetchPlaceDetails(marker.placeData);
+            setShowPlaceModal(true);
+          };
+        });
+
+        marker.bindPopup(popupContent);
+        markersRef.current.push(marker);
+      } catch (error) {
+        console.error('Error adding marker:', error);
+      }
+    });
+  };
 
   // Fetch favorites from backend on mount
   useEffect(() => {
@@ -208,15 +329,22 @@ export default function Map() {
 
   const fetchFavorites = async () => {
     try {
-      const response = await axios.get(`${API_BASE}/favorites/`);
-      // Map response to have 'id' matching place.id
+      console.log('📥 Fetching favourites from API...');
+      const response = await axios.get(`${API_BASE}/favourites/`, {
+        headers: { Authorization: `Token ${token}` }
+      });
+      console.log('✅ Raw response:', response.data);
+      console.log('📊 Response structure:', response.data[0]); // Log first item
+    
       const favoritesData = response.data.map(fav => ({
         id: fav.place.id,
         ...fav
       }));
+      console.log('✅ Processed favourites:', favoritesData);
+      console.log('🔑 Processed IDs:', favoritesData.map(f => f.id));
       setFavorites(favoritesData);
     } catch (error) {
-      console.error('Error fetching favorites:', error);
+      console.error('❌ Error fetching favourites:', error);
     }
   };
 
@@ -257,29 +385,42 @@ export default function Map() {
   };
 
   const toggleFavorite = async (place) => {
-    const placeId = place.id || place.properties?.id;
-    const isFav = favorites.some(fav => fav.id === placeId);
-
     try {
+      const placeId = place.id || place.properties?.id;
+      console.log('🔄 Toggling favourite for place:', placeId);
+      
+      if (!placeId) {
+        console.error('❌ No place ID found:', place);
+        return;
+      }
+
+      const isFav = favorites.some(fav => fav.id === placeId);
+      console.log('📊 Currently favourited:', isFav);
+
       if (isFav) {
-        // Remove from favorites
-        await axios.delete(`${API_BASE}/favorites/${placeId}/`);
-        // Update state immediately
+        console.log('🗑️ Deleting favourite...');
+        await axios.delete(`${API_BASE}/favourites/${placeId}/`, {
+          headers: { Authorization: `Token ${token}` }
+        });
         setFavorites(favorites.filter(fav => fav.id !== placeId));
       } else {
-        // Add to favorites
-        await axios.post(`${API_BASE}/favorites/`, {
-          place: placeId,
+        console.log('➕ Adding favourite...');
+        await axios.post(`${API_BASE}/favourites/`, 
+          { place: parseInt(placeId) },
+          { headers: { Authorization: `Token ${token}` } }
+        );
+        
+        const response = await axios.get(`${API_BASE}/favourites/`, {
+          headers: { Authorization: `Token ${token}` }
         });
-        // Add to local state immediately with proper structure
-        const newFav = {
-          id: placeId,
-          place: place,
-        };
-        setFavorites([...favorites, newFav]);
+        const favoritesData = response.data.map(fav => ({
+          id: fav.place.id,
+          ...fav
+        }));
+        setFavorites(favoritesData);
       }
     } catch (error) {
-      console.error('Error toggling favorite:', error);
+      console.error('❌ Error toggling favourite:', error.response?.data || error);
     }
   };
 
@@ -337,8 +478,9 @@ export default function Map() {
                 <div 
                   key={idx} 
                   className="place-card"
+                  onClick={() => handlePlaceCardClick(place)}
                 >
-                  <div onClick={() => handlePlaceCardClick(place)} style={{ cursor: 'pointer' }}>
+                  <div style={{ cursor: 'pointer' }}>
                     <h5>{properties.name}</h5>
                     <p className="desc">{properties.description?.substring(0, 50)}...</p>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>

@@ -1,14 +1,17 @@
+# backend/accounts/views.py
+
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.authtoken.models import Token
+from rest_framework import serializers  # ADD THIS LINE
 
 from .models import TouristProfile, FavouritePlace, VisitedPlace, PlacePhoto
 from .serializers import (
     TouristProfileSerializer,
-    FavouritePlaceSerializer,
+    FavouritePlaceSerializer,  # USE THIS
     VisitedPlaceSerializer,
     PlacePhotoSerializer,
     UserRegisterSerializer,
@@ -25,14 +28,6 @@ from places.models import Place
 class RegisterAPIView(generics.CreateAPIView):
     """
     POST /api/auth/register/
-    {
-        "username": "john",
-        "email": "john@example.com",
-        "password": "pass123",
-        "password2": "pass123",
-        "first_name": "John",
-        "last_name": "Doe"
-    }
     """
     serializer_class = UserRegisterSerializer
     permission_classes = [AllowAny]
@@ -54,10 +49,6 @@ class RegisterAPIView(generics.CreateAPIView):
 class LoginAPIView(generics.GenericAPIView):
     """
     POST /api/auth/login/
-    {
-        "username": "john",
-        "password": "pass123"
-    }
     """
     serializer_class = UserLoginSerializer
     permission_classes = [AllowAny]
@@ -103,51 +94,56 @@ class MeProfileAPIView(generics.RetrieveAPIView):
 
 
 # ---------------------------------------------------
-# FAVOURITES: LIST + ADD
+# FAVORITES: LIST + ADD
 # ---------------------------------------------------
-class FavouritePlaceListCreateAPIView(generics.ListCreateAPIView):
+class FavouriteListCreateAPIView(generics.ListCreateAPIView):
     """
-    GET  /api/favourites/
-    POST /api/favourites/  { "place_id": 1 }
+    GET  /api/favorites/
+    POST /api/favorites/  { "place": 1 }
     """
     serializer_class = FavouritePlaceSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return FavouritePlace.objects.filter(user=self.request.user).select_related("place")
+        return FavouritePlace.objects.filter(user=self.request.user).select_related('place')
 
-    def create(self, request, *args, **kwargs):
-        place_id = request.data.get("place_id")
-        if not place_id:
-            return Response(
-                {"detail": "place_id is required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        place = get_object_or_404(Place, id=place_id)
-        favourite, created = FavouritePlace.objects.get_or_create(
-            user=request.user,
-            place=place,
-        )
-        serializer = self.get_serializer(favourite)
-        status_code = status.HTTP_201_CREATED if created else status.HTTP_200_OK
-        return Response(serializer.data, status=status_code)
-
-
-# ---------------------------------------------------
-# SINGLE FAVOURITE: DELETE
-# ---------------------------------------------------
-class FavouritePlaceDetailAPIView(generics.DestroyAPIView):
-    """
-    DELETE /api/favourites/<id>/
-    """
-    serializer_class = FavouritePlaceSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        # User can only delete their own favourites
-        return FavouritePlace.objects.filter(user=self.request.user)
+    def perform_create(self, serializer):
+        place_id = self.request.data.get('place')
         
+        if not place_id:
+            raise serializers.ValidationError({"place": "place_id is required"})
+        
+        try:
+            place = Place.objects.get(id=place_id)
+        except Place.DoesNotExist:
+            raise serializers.ValidationError({"place": "Place not found"})
+        
+        # Check if already favorited
+        existing = FavouritePlace.objects.filter(user=self.request.user, place=place).first()
+        if existing:
+            raise serializers.ValidationError({"place": "Already in favorites"})
+        
+        serializer.save(user=self.request.user, place=place)
+
+
+# ---------------------------------------------------
+# SINGLE FAVORITE: DELETE
+# ---------------------------------------------------
+class FavouriteDetailAPIView(generics.RetrieveDestroyAPIView):
+    """
+    GET    /api/favorites/<place_id>/
+    DELETE /api/favorites/<place_id>/
+    """
+    serializer_class = FavouritePlaceSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return FavouritePlace.objects.filter(user=self.request.user)
+
+    def get_object(self):
+        place_id = self.kwargs.get('pk')
+        return get_object_or_404(FavouritePlace, user=self.request.user, place_id=place_id)
+
 
 # ---------------------------------------------------
 # VISITED PLACES: LIST + ADD
@@ -202,9 +198,6 @@ class PlacePhotoListCreateAPIView(generics.ListCreateAPIView):
     """
     GET  /api/visited/<visited_id>/photos/
     POST /api/visited/<visited_id>/photos/
-      form-data:
-        image: <file>
-        caption: "Nice view"
     """
     serializer_class = PlacePhotoSerializer
     permission_classes = [IsAuthenticated]

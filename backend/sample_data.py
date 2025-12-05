@@ -4,11 +4,23 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 django.setup()
 
+from django.contrib.auth.models import User
 from places.models import Category, Place
+from accounts.models import TouristProfile, FavouritePlace
 
 # Clear existing data
 Place.objects.all().delete()
 Category.objects.all().delete()
+User.objects.filter(username__startswith='tourist_').delete()
+
+# Create test user
+test_user = User.objects.create_user(
+    username='tourist_user',
+    email='tourist@example.com',
+    password='testpass123'
+)
+profile = TouristProfile.objects.create(user=test_user, points=0)
+print(f"✓ Created test user: {test_user.username}")
 
 # Create categories
 categories_data = [
@@ -199,17 +211,14 @@ places_data = [
     },
 ]
 
-# Create places using raw SQL to bypass GIS requirement
-from django.db import connection
-from django.contrib.gis.geos import Point
-
+# Create places
 for place_data in places_data:
     category_name = place_data.pop('category')
     latitude = place_data.pop('latitude')
     longitude = place_data.pop('longitude')
     
     try:
-        # Try with Point (if GDAL works)
+        from django.contrib.gis.geos import Point
         location = Point(longitude, latitude, srid=4326)
         place = Place.objects.create(
             category=categories[category_name],
@@ -217,8 +226,7 @@ for place_data in places_data:
             **place_data
         )
     except Exception as e:
-        # Fallback: create without location
-        print(f"⚠ Creating {place_data['name']} without GIS (GDAL issue)")
+        print(f"⚠ Creating {place_data['name']} without GIS")
         place = Place.objects.create(
             category=categories[category_name],
             latitude=latitude,
@@ -230,3 +238,17 @@ for place_data in places_data:
 
 print("\n✅ Database seeding complete!")
 print(f"Created {Place.objects.count()} places")
+print(f"Created {Category.objects.count()} categories")
+print(f"Test user: tourist_user / testpass123")
+
+# Create sample favourites for testing
+places_to_favourite = Place.objects.all()[:6]  # First 6 places
+
+for place in places_to_favourite:
+    FavouritePlace.objects.create(
+        user=test_user,
+        place=place
+    )
+    print(f"❤️ Added {place.name} to favourites")
+
+print(f"\n✅ Created {FavouritePlace.objects.count()} sample favourites!")
