@@ -92,3 +92,21 @@ body {
 .leaflet-bottom {
   z-index: 400;
 }
+
+@media (max-width: 768px) {
+  .app.sidebar-closed {
+    .main-content {
+      padding-top: 70px;
+      padding-left: 0;
+    }
+  }
+}
+
+@media (min-width: 769px) {
+  .app.sidebar-closed {
+    .main-content {
+      padding-top: 0;
+      padding-left: 70px;
+    }
+  }
+}

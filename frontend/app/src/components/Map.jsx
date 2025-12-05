@@ -11,6 +11,7 @@ export default function Map() {
   const mapRef = useRef(null);
   const markersRef = useRef([]);
   const [places, setPlaces] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [favorites, setFavorites] = useState([]);
   const [filters, setFilters] = useState({
@@ -31,6 +32,11 @@ export default function Map() {
   useEffect(() => {
     localStorage.setItem('favorites', JSON.stringify(favorites));
   }, [favorites]);
+
+  // Fetch categories on mount
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   // Initialize map ONCE
   useEffect(() => {
@@ -139,13 +145,24 @@ export default function Map() {
     });
   }, [places, favorites]);
 
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get(`${API_BASE}/categories/`);
+      setCategories(response.data);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
+
   const fetchPlaces = async () => {
     try {
       setLoading(true);
       let url = `${API_BASE}/places/`;
 
       const params = new URLSearchParams();
-      if (filters.category) params.append('category', filters.category);
+      if (filters.category) {
+        params.append('category', filters.category);
+      }
       if (filters.childFriendly) params.append('child_friendly', true);
       if (filters.wheelchairAccess) params.append('wheelchair_access', true);
 
@@ -210,10 +227,11 @@ export default function Map() {
         
         <select name="category" value={filters.category} onChange={handleFilterChange}>
           <option value="">All Categories</option>
-          <option value="restaurant">🍽️ Restaurant</option>
-          <option value="museum">🏛️ Museum</option>
-          <option value="park">🌳 Park</option>
-          <option value="beach">🏖️ Beach</option>
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.id}>
+              {cat.name}
+            </option>
+          ))}
         </select>
 
         <label>
