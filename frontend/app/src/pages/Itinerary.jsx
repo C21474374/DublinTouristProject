@@ -177,11 +177,18 @@ export default function Itinerary() {
   };
 
   const { totalCost, totalTime } = calculateTotals();
-  const routeCoordinates = (selectedItinerary?.stops || stops).map((stop) => {
-    const place = stop.place || stop;
-    const coords = place.geometry?.coordinates || place.location?.coordinates || [0, 0];
-    return [coords[1], coords[0]];
-  });
+// With this:
+const routeCoordinates = mode === 'view' 
+  ? (selectedItinerary?.stops || []).map((stop) => {
+      const place = stop.place || stop;
+      const coords = place.geometry?.coordinates || place.location?.coordinates || [0, 0];
+      return [coords[1], coords[0]];
+    })
+  : stops.map((stop) => {
+      const place = stop.place || stop;
+      const coords = place.geometry?.coordinates || place.location?.coordinates || [0, 0];
+      return [coords[1], coords[0]];
+});
 
   const mapCenter = routeCoordinates.length > 0 ? routeCoordinates[0] : [53.3498, -6.2603];
 
@@ -192,7 +199,11 @@ export default function Itinerary() {
           <>
             <div className="panel-header">
               <h2>🛣️ Create New Itinerary</h2>
-              <button className="view-btn" onClick={() => setMode('view')}>
+              <button className="view-btn" onClick={() => {
+                setMode('view');
+                setStops([]);  // Clear current route
+                setNewItineraryName('');
+              }}>
                 📋 View Saved
               </button>
             </div>
@@ -300,9 +311,13 @@ export default function Itinerary() {
           <>
             <div className="panel-header">
               <h2>📋 Saved Itineraries</h2>
-              <button className="create-btn" onClick={() => setMode('create')}>
-                ➕ Create New
-              </button>
+            <button className="create-btn" onClick={() => {
+            setMode('create');
+            setSelectedItinerary(null);  // Clear selected itinerary
+            setStops([]);  // Clear stops
+            }}>
+            ➕ Create New
+            </button>
             </div>
 
             {savedItineraries.length === 0 ? (
@@ -361,7 +376,7 @@ export default function Itinerary() {
 
       {/* Map */}
       {routeCoordinates.length > 0 && (
-        <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', flex: 1 }}>
+        <MapContainer key={`${mode}-${selectedItinerary?.id}`} center={mapCenter} zoom={13} style={{ height: '100%', flex: 1 }}>
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; OpenStreetMap contributors'
@@ -380,7 +395,7 @@ export default function Itinerary() {
             const props = place.properties || place;
             
             return (
-              <Marker key={stop.id || idx} position={position}>
+              <Marker key={`${stop.id}-${idx}`} position={position}>
                 <Popup>
                   <div>
                     <h4>Stop {idx + 1}: {props.name}</h4>
