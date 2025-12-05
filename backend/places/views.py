@@ -12,6 +12,7 @@ from .models import Category, Place, Rating, Itinerary, ItineraryStop
 from .serializers import (
     CategorySerializer,
     PlaceSerializer,
+    PlaceDetailSerializer,
     RatingSerializer,
     ItinerarySerializer,
     ItineraryStopSerializer,
@@ -38,12 +39,8 @@ class PlaceListAPIView(generics.ListAPIView):
       ?category=<id>
       ?child_friendly=true
       ?wheelchair_access=true
-      ?price_min=0
-      ?price_max=50
-      ?capacity_min=2
-      ?ordering=popularity | -popularity | price | -price | created_at | -created_at
     """
-    serializer_class = PlaceSerializer
+    serializer_class = PlaceDetailSerializer  # Change to PlaceListSerializer
 
     def get_queryset(self):
         qs = Place.objects.select_related("category").all()
@@ -92,6 +89,11 @@ class PlaceListAPIView(generics.ListAPIView):
 
         return qs
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
 
 # ---------------------------------------------------
 # PLACE DETAIL
@@ -101,7 +103,13 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
     GET /api/places/<id>/
     """
     queryset = Place.objects.select_related("category")
-    serializer_class = PlaceSerializer
+    serializer_class = PlaceDetailSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 
 # ---------------------------------------------------
@@ -113,7 +121,7 @@ class NearbyPlaceListAPIView(generics.ListAPIView):
     Returns places within radius_km of the given point,
     ordered by distance.
     """
-    serializer_class = PlaceSerializer
+    serializer_class = PlaceDetailSerializer
 
     def get_queryset(self):
         lat = self.request.query_params.get("lat")
@@ -133,7 +141,6 @@ class NearbyPlaceListAPIView(generics.ListAPIView):
 
         user_point = Point(lng, lat, srid=4326)
 
-
         qs = (
             Place.objects
             .annotate(distance=Distance("location", user_point))
@@ -143,25 +150,54 @@ class NearbyPlaceListAPIView(generics.ListAPIView):
         )
         return qs
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
 
 # ---------------------------------------------------
-# RATINGS: LIST + CREATE FOR A PLACE
+# RATINGS: CREATE FOR A PLACE
 # ---------------------------------------------------
-class PlaceRatingListCreateAPIView(generics.ListCreateAPIView):
+class RatingCreateAPIView(generics.CreateAPIView):
     """
-    GET  /api/places/<place_id>/ratings/
-    POST /api/places/<place_id>/ratings/
+    POST /api/places/{place_id}/ratings/create/
+    {
+        "stars": 5,
+        "comment": "Amazing place!"
+    }
+    """
+    serializer_class = RatingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        place_id = self.kwargs.get('place_id')
+        try:
+            place = Place.objects.get(id=place_id)
+        except Place.DoesNotExist:
+            raise serializers.ValidationError("Place not found")
+        
+        # Check if user already rated this place
+        existing_rating = Rating.objects.filter(user=self.request.user, place=place).first()
+        if existing_rating:
+            raise serializers.ValidationError("You have already rated this place. Update your existing rating instead.")
+        
+        serializer.save(user=self.request.user, place=place)
+
+
+# ---------------------------------------------------
+# RATINGS: LIST FOR A PLACE
+# ---------------------------------------------------
+class RatingListAPIView(generics.ListAPIView):
+    """
+    GET /api/places/{place_id}/ratings/
     """
     serializer_class = RatingSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
-        place_id = self.kwargs["place_id"]
-        return Rating.objects.filter(place_id=place_id).select_related("user", "place")
-
-    def perform_create(self, serializer):
-        place_id = self.kwargs["place_id"]
-        serializer.save(user=self.request.user, place_id=place_id)
+        place_id = self.kwargs.get('place_id')
+        return Rating.objects.filter(place_id=place_id).select_related('user', 'place').order_by('-created_at')
 
 
 # ---------------------------------------------------
@@ -169,17 +205,16 @@ class PlaceRatingListCreateAPIView(generics.ListCreateAPIView):
 # ---------------------------------------------------
 class RatingDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     """
-    GET    /api/ratings/<id>/
-    PATCH  /api/ratings/<id>/
-    DELETE /api/ratings/<id>/
+    GET    /api/ratings/{id}/
+    PATCH  /api/ratings/{id}/
+    DELETE /api/ratings/{id}/
     """
     serializer_class = RatingSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
     queryset = Rating.objects.select_related("user", "place")
 
     def perform_update(self, serializer):
-        rating = self.get_object()
-        if rating.user != self.request.user:
+        if serializer.instance.user != self.request.user:
             raise PermissionDenied("You can only edit your own ratings.")
         serializer.save()
 
@@ -234,7 +269,6 @@ class ItineraryDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 
 # ---------------------------------------------------
 # EXTRA SERIALIZER FOR WRITING ITINERARY STOPS
-# (we keep your read-only one for output)
 # ---------------------------------------------------
 class ItineraryStopWriteSerializer(serializers.ModelSerializer):
     class Meta:

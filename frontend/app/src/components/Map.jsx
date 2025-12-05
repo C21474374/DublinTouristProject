@@ -3,6 +3,8 @@ import L from 'leaflet';
 import axios from 'axios';
 import 'leaflet/dist/leaflet.css';
 import '../styles/Map.scss';
+import RatingModal from './RatingModal';
+import PlaceDetailsModal from './PlaceDetailsModal';
 
 const API_BASE = 'http://localhost:8000/api';
 
@@ -19,6 +21,10 @@ export default function Map() {
     childFriendly: false,
     wheelchairAccess: false,
   });
+  const [selectedPlace, setSelectedPlace] = useState(null);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [placeDetails, setPlaceDetails] = useState(null);
+  const [showPlaceModal, setShowPlaceModal] = useState(false);
 
   // Load favorites from localStorage on mount
   useEffect(() => {
@@ -121,21 +127,36 @@ export default function Map() {
         const isFavorite = favorites.some(fav => fav.id === place.id);
         const marker = L.marker([coords[1], coords[0]]).addTo(mapRef.current);
         const properties = place.properties || place;
+        const avgRating = properties.average_rating || 0;
 
         const popupContent = document.createElement('div');
         popupContent.className = 'map-popup';
         popupContent.innerHTML = `
           <h5>${properties.name || 'Unknown'}</h5>
-          <p>${properties.description || 'No description'}</p>
-          <p><strong>Price:</strong> $${properties.price || 0}</p>
-          <p><strong>Time:</strong> ${properties.time_required || 0} min</p>
+          <p style="margin: 0.5rem 0; font-size: 0.85rem; color: #666;">
+            <span style="color: #ffc107;">
+              ${'★'.repeat(Math.round(avgRating))}${'☆'.repeat(5 - Math.round(avgRating))}
+            </span>
+            (${avgRating.toFixed(1)}/5)
+          </p>
+          <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+            <button class="favorite-popup-btn" style="flex: 1; padding: 0.5rem; font-size: 0.85rem;">
+              ${isFavorite ? '❤️' : '🤍'}
+            </button>
+            <button class="details-popup-btn" style="flex: 1; padding: 0.5rem; font-size: 0.85rem; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
+              View More →
+            </button>
+          </div>
         `;
 
-        const btn = document.createElement('button');
-        btn.className = 'favorite-popup-btn';
-        btn.innerHTML = isFavorite ? '❤️ Favorited' : '🤍 Add to Favorites';
-        btn.onclick = () => toggleFavorite(place);
-        popupContent.appendChild(btn);
+        const favBtn = popupContent.querySelector('.favorite-popup-btn');
+        favBtn.onclick = () => toggleFavorite(place);
+
+        const detailsBtn = popupContent.querySelector('.details-popup-btn');
+        detailsBtn.onclick = () => {
+          setSelectedPlace(place);
+          setShowPlaceModal(true);
+        };
 
         marker.bindPopup(popupContent);
         markersRef.current.push(marker);
@@ -177,6 +198,16 @@ export default function Map() {
       setPlaces([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPlaceDetails = async (place) => {
+    try {
+      const response = await axios.get(`${API_BASE}/places/${place.id}/`);
+      setPlaceDetails(response.data.properties || response.data);
+      setSelectedPlace(place);
+    } catch (error) {
+      console.error('Error fetching place details:', error);
     }
   };
 
@@ -289,6 +320,27 @@ export default function Map() {
       </div>
 
       <div className="map-container" ref={mapContainerRef}></div>
+
+      {showRatingModal && placeDetails && (
+        <RatingModal
+          place={selectedPlace}
+          onClose={() => setShowRatingModal(false)}
+          onRatingAdded={() => {
+            fetchPlaces(); // Refresh to get updated ratings
+          }}
+          userRating={placeDetails.user_rating}
+        />
+      )}
+
+      {showPlaceModal && selectedPlace && (
+        <PlaceDetailsModal
+          place={selectedPlace}
+          onClose={() => setShowPlaceModal(false)}
+          onRatingAdded={() => {
+            fetchPlaces();
+          }}
+        />
+      )}
     </div>
   );
 }

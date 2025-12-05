@@ -1,0 +1,283 @@
+.place-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1rem;
+  overflow-y: auto;
+
+  .place-modal {
+    background: white;
+    border-radius: 12px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease;
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+
+    .close-btn {
+      position: sticky;
+      top: 1rem;
+      right: 1rem;
+      background: white;
+      border: 1px solid #ddd;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      float: right;
+
+      &:hover {
+        background: #f0f0f0;
+      }
+    }
+
+    .modal-content {
+      padding: 2rem;
+      clear: both;
+
+      .place-header {
+        margin-bottom: 2rem;
+
+        h1 {
+          margin: 0 0 0.5rem 0;
+          font-size: 1.8rem;
+          color: #333;
+        }
+
+        .description {
+          margin: 0;
+          color: #666;
+          line-height: 1.5;
+          font-size: 0.95rem;
+        }
+      }
+
+      .place-info {
+        background: #f9f9f9;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 2rem;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+
+        .info-item {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+
+          .label {
+            font-size: 0.8rem;
+            color: #999;
+            font-weight: 600;
+          }
+
+          .value {
+            font-size: 1rem;
+            color: #333;
+            font-weight: 600;
+          }
+        }
+      }
+
+      .rating-section {
+        margin-bottom: 2rem;
+
+        .rating-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1.5rem;
+
+          h2 {
+            margin: 0;
+            font-size: 1.3rem;
+            color: #333;
+          }
+
+          .rating-stats {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.25rem;
+
+            .stars {
+              font-size: 1.2rem;
+              color: #ffc107;
+            }
+
+            .rating-text {
+              font-size: 0.9rem;
+              color: #666;
+            }
+          }
+        }
+
+        .user-rating {
+          margin-bottom: 1.5rem;
+
+          .your-rating {
+            margin: 0 0 0.75rem 0;
+            font-weight: 600;
+            color: #667eea;
+            font-size: 0.95rem;
+          }
+
+          .your-rating-card {
+            background: #f0f4ff;
+            border: 2px solid #667eea;
+
+            .rating-top {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 0.75rem;
+
+              .edit-btn {
+                background: #667eea;
+                color: white;
+                border: none;
+                padding: 0.4rem 0.8rem;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 0.85rem;
+                transition: all 0.2s;
+
+                &:hover {
+                  background: #764ba2;
+                }
+              }
+            }
+          }
+        }
+
+        .add-rating-btn {
+          width: 100%;
+          padding: 0.75rem;
+          background: #ffc107;
+          color: #333;
+          border: none;
+          border-radius: 6px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+          margin-bottom: 1.5rem;
+
+          &:hover {
+            background: #ffb300;
+            transform: translateY(-2px);
+          }
+        }
+
+        .rating-card {
+          background: #f9f9f9;
+          border-radius: 8px;
+          padding: 1rem;
+          margin-bottom: 0.75rem;
+          border-left: 3px solid #ffc107;
+
+          .rating-header-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+
+            .rater-name {
+              margin: 0;
+              font-weight: 600;
+              color: #333;
+              font-size: 0.9rem;
+            }
+
+            .stars {
+              display: block;
+              color: #ffc107;
+              font-size: 0.9rem;
+              margin-top: 0.25rem;
+            }
+          }
+
+          .comment {
+            margin: 0.5rem 0 0 0;
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.4;
+          }
+        }
+
+        .other-ratings-title {
+          margin: 1.5rem 0 1rem 0;
+          font-weight: 600;
+          color: #333;
+          font-size: 0.95rem;
+        }
+
+        .no-reviews {
+          text-align: center;
+          color: #999;
+          font-style: italic;
+          margin: 1rem 0;
+        }
+      }
+
+      .modal-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+
+        .tag {
+          background: #e8f4f8;
+          color: #0099cc;
+          padding: 0.4rem 0.8rem;
+          border-radius: 20px;
+          font-size: 0.85rem;
+          font-weight: 500;
+        }
+      }
+    }
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .place-modal-overlay {
+    .place-modal {
+      .modal-content {
+        padding: 1.5rem;
+
+        .place-info {
+          grid-template-columns: 1fr;
+        }
+
+        .rating-header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+    }
+  }
+}

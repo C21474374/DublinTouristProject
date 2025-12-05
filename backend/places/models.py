@@ -49,15 +49,17 @@ class Place(models.Model):
 
 class Rating(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    place = models.ForeignKey(Place, on_delete=models.CASCADE, related_name="ratings")
-
-    stars = models.IntegerField()
-    comment = models.TextField(blank=True)
-
+    place = models.ForeignKey(Place, on_delete=models.CASCADE, related_name='rating_set')
+    stars = models.IntegerField(choices=[(i, i) for i in range(1, 6)])
+    comment = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        unique_together = ('user', 'place')
+        ordering = ['-created_at']
+
     def __str__(self):
-        return f"{self.place.name} - {self.stars} stars"
+        return f"{self.user.username} rated {self.place.name} {self.stars}★"
 
 class Itinerary(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="itineraries")
