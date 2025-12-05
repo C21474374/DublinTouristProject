@@ -10,7 +10,7 @@ from .models import (
     PlacePhoto
 )
 
-from places.serializers import PlaceSerializer
+from places.serializers import PlaceSerializer, PlaceDetailSerializer
 from rest_framework.authtoken.models import Token
 
 
@@ -29,7 +29,7 @@ class TouristProfileSerializer(serializers.ModelSerializer):
 # FAVOURITE PLACE SERIALIZER
 # ----------------------------
 class FavouritePlaceSerializer(serializers.ModelSerializer):
-    place = PlaceSerializer(read_only=True)
+    place = PlaceDetailSerializer(read_only=True)
 
     class Meta:
         model = FavouritePlace
