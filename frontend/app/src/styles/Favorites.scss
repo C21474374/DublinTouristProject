@@ -1,0 +1,62 @@
+.favorites-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+
+  h1 {
+    color: #667eea;
+    margin-bottom: 2rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #999;
+    font-size: 1.1rem;
+  }
+
+  .favorites-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+
+    .favorite-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s;
+
+      &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      h3 {
+        margin-top: 0;
+        color: #333;
+      }
+
+      p {
+        color: #666;
+        margin: 0.5rem 0;
+      }
+
+      .remove-btn {
+        width: 100%;
+        margin-top: 1rem;
+        padding: 0.75rem;
+        background: #ff6b6b;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.3s;
+
+        &:hover {
+          background: #ff5252;
+        }
+      }
+    }
+  }
+}

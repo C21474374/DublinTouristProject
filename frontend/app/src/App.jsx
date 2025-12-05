@@ -6,51 +6,42 @@ import Sidebar from './components/Sidebar.jsx';
 import Footer from './components/Footer.jsx';
 
 import Home from './pages/Home.jsx';
-import NotFound from './pages/NotFound.jsx';
-import Components from './pages/Components.jsx';
+import Itinerary from './pages/Itinerary.jsx';
+import Favorites from './pages/Favorites.jsx';
 import Profile from './pages/Profile.jsx';
+import NotFound from './pages/NotFound.jsx';
 
 import './styles.scss';
 
 function App() {
-  const [collapsed, setCollapsed] = useState(false);
-  const [image, setImage] = useState(false);
-  const [toggled, setToggled] = useState(false);
-
-  const handleCollapsedChange = () => {
-    setCollapsed(!collapsed);
-  };
-
-  const handleImageChange = (checked) => {
-    setImage(checked);
-  };
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const handleToggleSidebar = (value) => {
-    setToggled(value);
+    setSidebarOpen(value);
   };
 
   return (
-    <div className={`app ${toggled ? 'toggled' : ''}`}>
-      <Sidebar
-        image={image}
-        collapsed={collapsed}
-        toggled={toggled}
-        handleToggleSidebar={handleToggleSidebar}
-        handleCollapsedChange={handleCollapsedChange}
-      />
+    <div className={`app ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+      <Sidebar toggled={sidebarOpen} handleToggleSidebar={handleToggleSidebar} />
 
-      <main>
-        <div className="btn-toggle" onClick={() => handleToggleSidebar(true)}>
-          <FaBars />
-        </div>
+      <main className="main-content">
+        {!sidebarOpen && (
+          <button
+            className="btn-toggle"
+            onClick={() => handleToggleSidebar(true)}
+            title="Open Menu"
+            aria-label="Toggle navigation"
+          >
+            <FaBars size={24} />
+          </button>
+        )}
 
         <Routes>
-          <Route path="/" element={<Home image={image} handleImageChange={handleImageChange} />} />
-          <Route path="/components" element={<Components />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/itinerary" element={<Itinerary />} />
+          <Route path="/favorites" element={<Favorites />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/not-found" element={<NotFound />} />
-
-          {/* React Router v6 replacement for Redirect */}
           <Route path="*" element={<Navigate to="/not-found" />} />
         </Routes>
 

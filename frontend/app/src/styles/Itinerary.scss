@@ -1,0 +1,102 @@
+.itinerary-container {
+  display: flex;
+  gap: 2rem;
+  height: calc(100vh - 80px);
+  padding: 1rem;
+
+  .itinerary-panel {
+    width: 350px;
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+
+    h2 {
+      margin-top: 0;
+      color: #667eea;
+    }
+
+    .input-group {
+      margin-bottom: 1.5rem;
+
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #333;
+      }
+
+      input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+
+        &:focus {
+          outline: none;
+          border-color: #667eea;
+        }
+      }
+    }
+
+    .generate-btn {
+      width: 100%;
+      padding: 1rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s;
+
+      &:hover:not(:disabled) {
+        transform: translateY(-2px);
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+
+    .itinerary-result {
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 2px solid #eee;
+
+      h3 {
+        color: #667eea;
+        margin-bottom: 1rem;
+      }
+
+      .stops-list {
+        list-style: none;
+        padding: 0;
+
+        .stop-item {
+          background: #f9f9f9;
+          padding: 1rem;
+          margin-bottom: 1rem;
+          border-radius: 6px;
+          border-left: 4px solid #667eea;
+
+          h4 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+          }
+
+          p {
+            margin: 0.25rem 0;
+            font-size: 0.9rem;
+            color: #666;
+          }
+        }
+      }
+    }
+  }
+}
