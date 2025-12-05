@@ -12,11 +12,25 @@ export default function Map() {
   const markersRef = useRef([]);
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [favorites, setFavorites] = useState([]);
   const [filters, setFilters] = useState({
     category: '',
     childFriendly: false,
     wheelchairAccess: false,
   });
+
+  // Load favorites from localStorage on mount
+  useEffect(() => {
+    const savedFavorites = localStorage.getItem('favorites');
+    if (savedFavorites) {
+      setFavorites(JSON.parse(savedFavorites));
+    }
+  }, []);
+
+  // Save favorites to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+  }, [favorites]);
 
   // Initialize map ONCE
   useEffect(() => {
@@ -47,6 +61,33 @@ export default function Map() {
     };
   }, []);
 
+  // Focus on place from Favorites page
+  useEffect(() => {
+    const focusPlaceStr = sessionStorage.getItem('focusPlace');
+    if (focusPlaceStr && mapRef.current) {
+      const focusPlace = JSON.parse(focusPlaceStr);
+      const coords = focusPlace.geometry?.coordinates || 
+                     focusPlace.location?.coordinates || 
+                     [focusPlace.longitude, focusPlace.latitude];
+
+      if (coords && coords.length === 2) {
+        mapRef.current.setView([coords[1], coords[0]], 16, { animate: true });
+        
+        // Find and open the marker
+        setTimeout(() => {
+          markersRef.current.forEach(marker => {
+            if (marker.getLatLng().lat === coords[1] && marker.getLatLng().lng === coords[0]) {
+              marker.openPopup();
+            }
+          });
+        }, 300);
+      }
+
+      // Clear the sessionStorage
+      sessionStorage.removeItem('focusPlace');
+    }
+  }, []);
+
   // Fetch places when filters change
   useEffect(() => {
     fetchPlaces();
@@ -71,24 +112,32 @@ export default function Map() {
       if (!coords || coords.length < 2) return;
 
       try {
+        const isFavorite = favorites.some(fav => fav.id === place.id);
         const marker = L.marker([coords[1], coords[0]]).addTo(mapRef.current);
         const properties = place.properties || place;
 
-        marker.bindPopup(`
-          <div class="map-popup">
-            <h5>${properties.name || 'Unknown'}</h5>
-            <p>${properties.description || 'No description'}</p>
-            <p><strong>Price:</strong> $${properties.price || 0}</p>
-            <p><strong>Time:</strong> ${properties.time_required || 0} min</p>
-          </div>
-        `);
+        const popupContent = document.createElement('div');
+        popupContent.className = 'map-popup';
+        popupContent.innerHTML = `
+          <h5>${properties.name || 'Unknown'}</h5>
+          <p>${properties.description || 'No description'}</p>
+          <p><strong>Price:</strong> $${properties.price || 0}</p>
+          <p><strong>Time:</strong> ${properties.time_required || 0} min</p>
+        `;
 
+        const btn = document.createElement('button');
+        btn.className = 'favorite-popup-btn';
+        btn.innerHTML = isFavorite ? '❤️ Favorited' : '🤍 Add to Favorites';
+        btn.onclick = () => toggleFavorite(place);
+        popupContent.appendChild(btn);
+
+        marker.bindPopup(popupContent);
         markersRef.current.push(marker);
       } catch (error) {
         console.error('Error adding marker:', error);
       }
     });
-  }, [places]);
+  }, [places, favorites]);
 
   const fetchPlaces = async () => {
     try {
@@ -140,6 +189,20 @@ export default function Map() {
     }
   };
 
+  const toggleFavorite = (place) => {
+    const isFavorite = favorites.some(fav => fav.id === place.id);
+    
+    if (isFavorite) {
+      setFavorites(favorites.filter(fav => fav.id !== place.id));
+    } else {
+      setFavorites([...favorites, place]);
+    }
+  };
+
+  const isFavorite = (placeId) => {
+    return favorites.some(fav => fav.id === placeId);
+  };
+
   return (
     <div className="map-wrapper">
       <div className="filters-sidebar">
@@ -182,16 +245,24 @@ export default function Map() {
           ) : (
             places.map((place, idx) => {
               const properties = place.properties || place;
+              const favorite = isFavorite(place.id);
               return (
                 <div 
                   key={idx} 
                   className="place-card"
-                  onClick={() => handlePlaceCardClick(place)}
-                  style={{ cursor: 'pointer' }}
                 >
-                  <h5>{properties.name}</h5>
-                  <p className="desc">{properties.description?.substring(0, 50)}...</p>
-                  <p className="price"><strong>${properties.price}</strong></p>
+                  <div onClick={() => handlePlaceCardClick(place)} style={{ cursor: 'pointer' }}>
+                    <h5>{properties.name}</h5>
+                    <p className="desc">{properties.description?.substring(0, 50)}...</p>
+                    <p className="price"><strong>${properties.price}</strong></p>
+                  </div>
+                  <button 
+                    className={`favorite-btn ${favorite ? 'favorited' : ''}`}
+                    onClick={() => toggleFavorite(place)}
+                    title={favorite ? 'Remove from favorites' : 'Add to favorites'}
+                  >
+                    {favorite ? '❤️' : '🤍'}
+                  </button>
                 </div>
               );
             })

@@ -1,51 +1,95 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../styles/Favorites.scss';
-
-const API_BASE = 'http://localhost:8000/api';
 
 export default function Favorites() {
   const [favorites, setFavorites] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchFavorites();
+    const savedFavorites = localStorage.getItem('favorites');
+    if (savedFavorites) {
+      setFavorites(JSON.parse(savedFavorites));
+    }
   }, []);
 
-  const fetchFavorites = async () => {
-    try {
-      const response = await axios.get(`${API_BASE}/favourites/`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
-      setFavorites(response.data);
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching favorites:', error);
-      setLoading(false);
-    }
+  const removeFavorite = (placeId) => {
+    const updated = favorites.filter(fav => fav.id !== placeId);
+    setFavorites(updated);
+    localStorage.setItem('favorites', JSON.stringify(updated));
   };
 
-  if (loading) return <div>Loading favorites...</div>;
+  const handleViewOnMap = (place) => {
+    // Store the place to focus on in sessionStorage
+    sessionStorage.setItem('focusPlace', JSON.stringify(place));
+    // Navigate to map
+    navigate('/');
+  };
 
   return (
-    <div className="favorites-container">
-      <h1>❤️ My Favorite Places</h1>
+    <div className="favorites-page">
+      <div className="favorites-container">
+        <h1>❤️ My Favorites</h1>
 
-      {favorites.length === 0 ? (
-        <p className="empty-state">No favorites yet. Add some from the map!</p>
-      ) : (
-        <div className="favorites-grid">
-          {favorites.map((fav) => (
-            <div key={fav.id} className="favorite-card">
-              <h3>{fav.place.name}</h3>
-              <p>{fav.place.description}</p>
-              <p><strong>Price:</strong> ${fav.place.price}</p>
-              <p><strong>Rating:</strong> {fav.place.ratings?.length || 0} reviews</p>
-              <button className="remove-btn">Remove from Favorites</button>
+        {favorites.length === 0 ? (
+          <div className="empty-state">
+            <p>No favorites yet!</p>
+            <p className="subtitle">Explore places on the map and add them to your favorites.</p>
+          </div>
+        ) : (
+          <>
+            <p className="favorites-count">You have {favorites.length} favorite place{favorites.length !== 1 ? 's' : ''}</p>
+            <div className="favorites-grid">
+              {favorites.map((place) => {
+                const properties = place.properties || place;
+                return (
+                  <div key={place.id} className="favorite-card">
+                    <div className="card-header">
+                      <h3>{properties.name}</h3>
+                      <button
+                        className="remove-btn"
+                        onClick={() => removeFavorite(place.id)}
+                        title="Remove from favorites"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    <p className="description">{properties.description}</p>
+
+                    <div className="card-info">
+                      <div className="info-item">
+                        <span className="label">Price:</span>
+                        <span className="value">${properties.price}</span>
+                      </div>
+                      <div className="info-item">
+                        <span className="label">Time:</span>
+                        <span className="value">{properties.time_required} min</span>
+                      </div>
+                      <div className="info-item">
+                        <span className="label">Popularity:</span>
+                        <span className="value">{properties.popularity} visits</span>
+                      </div>
+                    </div>
+
+                    <div className="card-tags">
+                      {properties.child_friendly && <span className="tag">👶 Child Friendly</span>}
+                      {properties.wheelchair_access && <span className="tag">♿ Wheelchair Access</span>}
+                    </div>
+
+                    <button 
+                      className="view-btn"
+                      onClick={() => handleViewOnMap(place)}
+                    >
+                      View on Map →
+                    </button>
+                  </div>
+                );
+              })}
             </div>
-          ))}
-        </div>
-      )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
