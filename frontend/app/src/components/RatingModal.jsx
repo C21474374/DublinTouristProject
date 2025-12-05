@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { useAuth } from '../hooks/useAuth';
 import '../styles/RatingModal.scss';
 
 const API_BASE = 'http://localhost:8000/api';
@@ -9,6 +10,7 @@ export default function RatingModal({ place, onClose, onRatingAdded, userRating 
   const [comment, setComment] = useState(userRating?.comment || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { token } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,36 +20,47 @@ export default function RatingModal({ place, onClose, onRatingAdded, userRating 
     try {
       const placeId = place.id || place.properties?.id;
       
-      if (userRating) {
-        // Update existing rating
-        await axios.put(`${API_BASE}/ratings/${userRating.id}/`, {
+      if (userRating && userRating.id) {
+        // Update existing rating with PATCH
+        await axios.patch(`${API_BASE}/ratings/${userRating.id}/`, {
           stars,
           comment,
+        }, {
+          headers: { Authorization: `Token ${token}` }
         });
+        console.log('✅ Rating updated');
       } else {
         // Create new rating
         await axios.post(`${API_BASE}/places/${placeId}/ratings/create/`, {
           stars,
           comment,
+        }, {
+          headers: { Authorization: `Token ${token}` }
         });
+        console.log('✅ Rating created');
       }
 
       onRatingAdded();
       onClose();
     } catch (err) {
       console.error('Rating error:', err);
-      console.error('Response data:', err.response?.data);
-      setError(JSON.stringify(err.response?.data) || 'Failed to submit rating');
+      console.error('UserRating object:', userRating);
+      setError(err.response?.data?.detail || JSON.stringify(err.response?.data) || 'Failed to submit rating');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!userRating || !window.confirm('Delete this rating?')) return;
+    if (!userRating?.id || !window.confirm('Delete this rating?')) {
+      setError('Cannot delete rating - ID missing');
+      return;
+    }
 
     try {
-      await axios.delete(`${API_BASE}/ratings/${userRating.id}/`);
+      await axios.delete(`${API_BASE}/ratings/${userRating.id}/`, {
+        headers: { Authorization: `Token ${token}` }
+      });
       onRatingAdded();
       onClose();
     } catch (err) {

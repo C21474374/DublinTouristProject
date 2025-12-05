@@ -173,19 +173,24 @@ class RatingCreateAPIView(generics.CreateAPIView):
     serializer_class = RatingSerializer
     permission_classes = [IsAuthenticated]
 
-    def perform_create(self, serializer):
+    def create(self, request, *args, **kwargs):
         place_id = self.kwargs.get('place_id')
-        try:
-            place = Place.objects.get(id=place_id)
-        except Place.DoesNotExist:
-            raise serializers.ValidationError("Place not found")
         
         # Check if user already rated this place
-        existing_rating = Rating.objects.filter(user=self.request.user, place=place).first()
-        if existing_rating:
-            raise serializers.ValidationError("You have already rated this place. Update your existing rating instead.")
+        existing_rating = Rating.objects.filter(
+            user=request.user,
+            place_id=place_id
+        ).first()
         
-        serializer.save(user=self.request.user, place=place)
+        if existing_rating:
+            serializer = self.get_serializer(existing_rating, data=request.data, partial=True)
+        else:
+            request.data['place'] = place_id
+            serializer = self.get_serializer(data=request.data)
+        
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 # ---------------------------------------------------

@@ -17,7 +17,17 @@ export default function PlaceDetailsModal({ place, onClose, onRatingAdded }) {
   const fetchPlaceDetails = async () => {
     try {
       const response = await axios.get(`${API_BASE}/places/${place.id}/`);
-      setPlaceDetails(response.data.properties || response.data);
+      console.log('📋 Full API Response:', response.data);
+      
+      const data = response.data.properties || response.data;
+      console.log('📊 Processed data:', data);
+      
+      setPlaceDetails({
+        ...data,
+        ratings: data.ratings || [],
+        user_rating: data.user_rating || null,
+        average_rating: data.average_rating || 0,
+      });
     } catch (error) {
       console.error('Error fetching place details:', error);
     } finally {
@@ -112,22 +122,19 @@ export default function PlaceDetailsModal({ place, onClose, onRatingAdded }) {
                 </button>
               )}
 
-              <div className="other-ratings">
-                <p className="other-ratings-title">Other Reviews:</p>
-                {ratings.filter(r => r.id !== placeDetails.user_rating?.id).length > 0 ? (
-                  ratings.filter(r => r.id !== placeDetails.user_rating?.id).map((rating) => (
-                    <div key={rating.id} className="rating-card">
-                      <div className="rating-header-card">
-                        <div>
-                          <p className="rater-name">@{rating.user_username}</p>
-                          <span className="stars">
-                            {'★'.repeat(rating.stars)}{'☆'.repeat(5 - rating.stars)}
-                          </span>
-                        </div>
+              {/* Other Reviews Section */}
+              <div className="other-reviews">
+                <h3>Other Reviews:</h3>
+                {ratings.filter(r => r.user?.id !== placeDetails.user_rating?.user?.id).length > 0 ? (
+                  ratings.filter(r => r.user?.id !== placeDetails.user_rating?.user?.id).map((rating) => (
+                    <div key={rating.id} className="review-item">
+                      <div className="review-header">
+                        <span className="reviewer-name">{rating.user?.username || 'Anonymous'}</span>
+                        <span className="review-stars">
+                          {'⭐'.repeat(rating.stars)}{'☆'.repeat(5 - rating.stars)}
+                        </span>
                       </div>
-                      {rating.comment && (
-                        <p className="comment">{rating.comment}</p>
-                      )}
+                      <p className="review-comment">{rating.comment}</p>
                     </div>
                   ))
                 ) : (

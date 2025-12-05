@@ -49,12 +49,16 @@ class PlaceSerializer(GeoFeatureModelSerializer):
 # ----------------------------
 class RatingSerializer(serializers.ModelSerializer):
     user_username = serializers.CharField(source='user.username', read_only=True)
-    user_first_name = serializers.CharField(source='user.first_name', read_only=True)
 
     class Meta:
         model = Rating
-        fields = ['id', 'user', 'user_username', 'user_first_name', 'place', 'stars', 'comment', 'created_at']
-        read_only_fields = ['user', 'place', 'created_at']  # ADD 'place' HERE
+        fields = ['id', 'place', 'user', 'user_username', 'stars', 'comment', 'created_at']
+        read_only_fields = ['id', 'user', 'created_at']  # ADD 'place' HERE
+
+    def create(self, validated_data):
+        # Automatically set the user from the request
+        validated_data['user'] = self.context['request'].user
+        return super().create(validated_data)
 
 
 # ----------------------------
@@ -99,6 +103,7 @@ class PlaceDetailSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True)
     average_rating = serializers.SerializerMethodField()
     user_rating = serializers.SerializerMethodField()
+    ratings = RatingSerializer(source='rating_set', many=True, read_only=True)
 
     class Meta:
         model = Place
@@ -118,6 +123,7 @@ class PlaceDetailSerializer(serializers.ModelSerializer):
             'created_at',
             'average_rating',
             'user_rating',
+            'ratings',
         ]
 
     def get_average_rating(self, obj):
@@ -130,7 +136,8 @@ class PlaceDetailSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             rating = obj.rating_set.filter(user=request.user).first()
-            return rating.stars if rating else None
+            if rating:
+                return RatingSerializer(rating).data
         return None
 
 
