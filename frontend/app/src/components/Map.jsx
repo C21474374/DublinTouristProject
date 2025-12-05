@@ -169,6 +169,7 @@ export default function Map() {
         // Store place data on the marker for later access
         marker.placeData = place;
 
+        
         // Add event listener to popup after it opens
         marker.on('popupopen', () => {
           const popupElement = marker.getPopup().getElement();
@@ -384,6 +385,11 @@ export default function Map() {
     }
   };
 
+  const isFavorite = (placeId) => {
+    console.log('🔍 Checking if favorite. PlaceId:', placeId, 'Favorites:', favorites.map(f => ({ id: f.id, place_id: f.place?.id })));
+    return favorites.some(fav => fav.place?.id === placeId);
+  };
+
   const toggleFavorite = async (place) => {
     try {
       const placeId = place.id || place.properties?.id;
@@ -394,7 +400,7 @@ export default function Map() {
         return;
       }
 
-      const isFav = favorites.some(fav => fav.id === placeId);
+      const isFav = favorites.some(fav => fav.place?.id === placeId);
       console.log('📊 Currently favourited:', isFav);
 
       if (isFav) {
@@ -402,30 +408,18 @@ export default function Map() {
         await axios.delete(`${API_BASE}/favourites/${placeId}/`, {
           headers: { Authorization: `Token ${token}` }
         });
-        setFavorites(favorites.filter(fav => fav.id !== placeId));
+        setFavorites(favorites.filter(fav => fav.place?.id !== placeId));
       } else {
         console.log('➕ Adding favourite...');
         await axios.post(`${API_BASE}/favourites/`, 
           { place: parseInt(placeId) },
           { headers: { Authorization: `Token ${token}` } }
         );
-        
-        const response = await axios.get(`${API_BASE}/favourites/`, {
-          headers: { Authorization: `Token ${token}` }
-        });
-        const favoritesData = response.data.map(fav => ({
-          id: fav.place.id,
-          ...fav
-        }));
-        setFavorites(favoritesData);
+        await fetchFavorites();
       }
     } catch (error) {
       console.error('❌ Error toggling favourite:', error.response?.data || error);
     }
-  };
-
-  const isFavorite = (placeId) => {
-    return favorites.some(fav => fav.id === placeId);
   };
 
   return (
