@@ -46,7 +46,10 @@ export default function Signup() {
     );
 
     if (result.success) {
-      navigate('/');
+      // Small delay to ensure state updates
+      setTimeout(() => {
+        navigate('/');
+      }, 100);
     } else {
       const errorObj = result.error;
       if (errorObj.username) {

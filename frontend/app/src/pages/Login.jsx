@@ -19,7 +19,9 @@ export default function Login() {
     const result = await login(username, password);
     
     if (result.success) {
-      navigate('/');
+      setTimeout(() => {
+        navigate('/');
+      }, 100);
     } else {
       setError(result.error.detail || result.error.non_field_errors?.[0] || 'Login failed');
     }

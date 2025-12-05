@@ -16,7 +16,6 @@ export function AuthProvider({ children }) {
     if (savedToken) {
       setToken(savedToken);
       axios.defaults.headers.common['Authorization'] = `Token ${savedToken}`;
-      // Optional: Verify token is still valid
       fetchUser(savedToken);
     } else {
       setLoading(false);
@@ -50,10 +49,10 @@ export function AuthProvider({ children }) {
       });
       
       const { token: authToken, user: userData } = response.data;
-      setToken(authToken);
-      setUser(userData);
       localStorage.setItem('token', authToken);
       axios.defaults.headers.common['Authorization'] = `Token ${authToken}`;
+      setToken(authToken);
+      setUser(userData);
       
       return { success: true };
     } catch (error) {
@@ -72,10 +71,10 @@ export function AuthProvider({ children }) {
       });
       
       const { token: authToken, user: userData } = response.data;
-      setToken(authToken);
-      setUser(userData);
       localStorage.setItem('token', authToken);
       axios.defaults.headers.common['Authorization'] = `Token ${authToken}`;
+      setToken(authToken);
+      setUser(userData);
       
       return { success: true };
     } catch (error) {
