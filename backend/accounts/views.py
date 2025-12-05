@@ -1,9 +1,9 @@
 from django.shortcuts import get_object_or_404
-
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.authtoken.models import Token
 
 from .models import TouristProfile, FavouritePlace, VisitedPlace, PlacePhoto
 from .serializers import (
@@ -11,9 +11,80 @@ from .serializers import (
     FavouritePlaceSerializer,
     VisitedPlaceSerializer,
     PlacePhotoSerializer,
+    UserRegisterSerializer,
+    UserLoginSerializer,
+    UserSerializer,
 )
 
 from places.models import Place
+
+
+# ---------------------------------------------------
+# REGISTER
+# ---------------------------------------------------
+class RegisterAPIView(generics.CreateAPIView):
+    """
+    POST /api/auth/register/
+    {
+        "username": "john",
+        "email": "john@example.com",
+        "password": "pass123",
+        "password2": "pass123",
+        "first_name": "John",
+        "last_name": "Doe"
+    }
+    """
+    serializer_class = UserRegisterSerializer
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        token = Token.objects.get(user=user)
+        return Response({
+            'token': token.key,
+            'user': UserSerializer(user).data
+        }, status=status.HTTP_201_CREATED)
+
+
+# ---------------------------------------------------
+# LOGIN
+# ---------------------------------------------------
+class LoginAPIView(generics.GenericAPIView):
+    """
+    POST /api/auth/login/
+    {
+        "username": "john",
+        "password": "pass123"
+    }
+    """
+    serializer_class = UserLoginSerializer
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            'token': token.key,
+            'user': UserSerializer(user).data
+        }, status=status.HTTP_200_OK)
+
+
+# ---------------------------------------------------
+# LOGOUT
+# ---------------------------------------------------
+class LogoutAPIView(generics.GenericAPIView):
+    """
+    POST /api/auth/logout/
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        request.user.auth_token.delete()
+        return Response({"detail": "Logged out successfully"}, status=status.HTTP_200_OK)
 
 
 # ---------------------------------------------------
@@ -169,3 +240,17 @@ class PlacePhotoDetailAPIView(generics.RetrieveDestroyAPIView):
 
     def get_queryset(self):
         return PlacePhoto.objects.filter(visited__user=self.request.user)
+
+
+# ---------------------------------------------------
+# USER DETAIL
+# ---------------------------------------------------
+class UserDetailAPIView(generics.RetrieveAPIView):
+    """
+    GET /api/auth/user/
+    """
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user

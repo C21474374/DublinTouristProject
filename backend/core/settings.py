@@ -39,14 +39,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # GeoDjango (required for PointField, PostGIS)
+    # GeoDjango
     'django.contrib.gis',
 
     # Third-party apps
     'rest_framework',
+    'rest_framework.authtoken',
     'corsheaders',
-    'rest_framework_gis'
-,
+    'rest_framework_gis',
 
     # Your apps
     'places',
@@ -140,3 +140,13 @@ CORS_ALLOW_ALL_ORIGINS = True
 GDAL_LIBRARY_PATH = r"C:\Users\demet\miniconda3\envs\tourist\Library\bin\gdal.dll"
 GEOS_LIBRARY_PATH = r"C:\Users\demet\miniconda3\envs\tourist\Library\bin\geos_c.dll"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+}

@@ -1,27 +1,39 @@
 from django.urls import path
-from . import views
+from .views import (
+    RegisterAPIView,
+    LoginAPIView,
+    LogoutAPIView,
+    MeProfileAPIView,
+    FavouritePlaceListCreateAPIView,
+    FavouritePlaceDetailAPIView,
+    VisitedPlaceListCreateAPIView,
+    VisitedPlaceDetailAPIView,
+    PlacePhotoListCreateAPIView,
+    PlacePhotoDetailAPIView,
+    UserDetailAPIView,
+)
 
 urlpatterns = [
-    # Current user profile
-    path("profile/me/", views.MeProfileAPIView.as_view(), name="profile-me"),
+    # Auth
+    path("auth/register/", RegisterAPIView.as_view(), name="register"),
+    path("auth/login/", LoginAPIView.as_view(), name="login"),
+    path("auth/logout/", LogoutAPIView.as_view(), name="logout"),
+
+    # Profile
+    path("profile/me/", MeProfileAPIView.as_view(), name="profile-me"),
 
     # Favourites
-    path("favourites/", views.FavouritePlaceListCreateAPIView.as_view(), name="favourite-list"),
-    path("favourites/<int:pk>/", views.FavouritePlaceDetailAPIView.as_view(), name="favourite-detail"),
+    path("favourites/", FavouritePlaceListCreateAPIView.as_view(), name="favourites-list"),
+    path("favourites/<int:pk>/", FavouritePlaceDetailAPIView.as_view(), name="favourites-detail"),
 
-    # Visited places
-    path("visited/", views.VisitedPlaceListCreateAPIView.as_view(), name="visited-list"),
-    path("visited/<int:pk>/", views.VisitedPlaceDetailAPIView.as_view(), name="visited-detail"),
+    # Visited
+    path("visited/", VisitedPlaceListCreateAPIView.as_view(), name="visited-list"),
+    path("visited/<int:pk>/", VisitedPlaceDetailAPIView.as_view(), name="visited-detail"),
 
-    # Photos for visited place
-    path(
-        "visited/<int:visited_id>/photos/",
-        views.PlacePhotoListCreateAPIView.as_view(),
-        name="placephoto-list",
-    ),
-    path(
-        "photos/<int:pk>/",
-        views.PlacePhotoDetailAPIView.as_view(),
-        name="placephoto-detail",
-    ),
+    # Photos
+    path("visited/<int:visited_id>/photos/", PlacePhotoListCreateAPIView.as_view(), name="photos-list"),
+    path("photos/<int:pk>/", PlacePhotoDetailAPIView.as_view(), name="photos-detail"),
+
+    # User Detail
+    path("auth/user/", UserDetailAPIView.as_view(), name="user-detail"),
 ]
