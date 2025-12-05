@@ -231,7 +231,7 @@ const routeCoordinates = mode === 'view'
                       <div className="place-info">
                         <h4>{props.name}</h4>
                         <p className="place-details">
-                          💰 ${props.price} • ⏱️ {props.time_required}min
+                          💰 €{props.price} • ⏱️ {props.time_required}min
                         </p>
                       </div>
                       <button
@@ -277,7 +277,7 @@ const routeCoordinates = mode === 'view'
                           </button>
                         </div>
                         <p className="stop-meta">
-                          💰 ${props.price} • ⏱️ {props.time_required}min
+                          💰 €{props.price} • ⏱️ {props.time_required}min
                         </p>
                       </li>
                     );
@@ -289,7 +289,7 @@ const routeCoordinates = mode === 'view'
                 <div className="totals">
                   <div className="total-item">
                     <span>💰 Total Cost:</span>
-                    <strong>${totalCost}</strong>
+                    <strong>€{totalCost}</strong>
                   </div>
                   <div className="total-item">
                     <span>⏱️ Total Time:</span>
@@ -336,7 +336,7 @@ const routeCoordinates = mode === 'view'
                       </button>
                     </div>
                     <p className="card-stats">
-                      📍 {itinerary.stops?.length || 0} stops • 💰 ${itinerary.total_cost} • ⏱️ {itinerary.total_time_minutes} min
+                      📍 {itinerary.stops?.length || 0} stops • 💰 €{itinerary.total_cost} • ⏱️ {itinerary.total_time_minutes} min
                     </p>
                     <button
                       className="view-itinerary-btn"
@@ -362,7 +362,7 @@ const routeCoordinates = mode === 'view'
                           <h4>{props.name}</h4>
                         </div>
                         <p className="stop-meta">
-                          💰 ${props.price} • ⏱️ {props.time_required}min
+                          💰 €{props.price} • ⏱️ {props.time_required}min
                         </p>
                       </li>
                     );
@@ -399,7 +399,7 @@ const routeCoordinates = mode === 'view'
                 <Popup>
                   <div>
                     <h4>Stop {idx + 1}: {props.name}</h4>
-                    <p>💰 ${props.price}</p>
+                    <p>💰 €{props.price}</p>
                     <p>⏱️ {props.time_required} min</p>
                   </div>
                 </Popup>

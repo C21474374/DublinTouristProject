@@ -166,6 +166,11 @@ export default function Map() {
     });
   }, [places, favorites]);
 
+  // Fetch favorites from backend on mount
+  useEffect(() => {
+    fetchFavorites();
+  }, []);
+
   const fetchCategories = async () => {
     try {
       const response = await axios.get(`${API_BASE}/categories/`);
@@ -198,6 +203,20 @@ export default function Map() {
       setPlaces([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchFavorites = async () => {
+    try {
+      const response = await axios.get(`${API_BASE}/favorites/`);
+      // Map response to have 'id' matching place.id
+      const favoritesData = response.data.map(fav => ({
+        id: fav.place.id,
+        ...fav
+      }));
+      setFavorites(favoritesData);
+    } catch (error) {
+      console.error('Error fetching favorites:', error);
     }
   };
 
@@ -237,13 +256,30 @@ export default function Map() {
     }
   };
 
-  const toggleFavorite = (place) => {
-    const isFavorite = favorites.some(fav => fav.id === place.id);
-    
-    if (isFavorite) {
-      setFavorites(favorites.filter(fav => fav.id !== place.id));
-    } else {
-      setFavorites([...favorites, place]);
+  const toggleFavorite = async (place) => {
+    const placeId = place.id || place.properties?.id;
+    const isFav = favorites.some(fav => fav.id === placeId);
+
+    try {
+      if (isFav) {
+        // Remove from favorites
+        await axios.delete(`${API_BASE}/favorites/${placeId}/`);
+        // Update state immediately
+        setFavorites(favorites.filter(fav => fav.id !== placeId));
+      } else {
+        // Add to favorites
+        await axios.post(`${API_BASE}/favorites/`, {
+          place: placeId,
+        });
+        // Add to local state immediately with proper structure
+        const newFav = {
+          id: placeId,
+          place: place,
+        };
+        setFavorites([...favorites, newFav]);
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
     }
   };
 
@@ -295,6 +331,8 @@ export default function Map() {
             places.map((place, idx) => {
               const properties = place.properties || place;
               const favorite = isFavorite(place.id);
+              const avgRating = properties.average_rating || 0;
+              
               return (
                 <div 
                   key={idx} 
@@ -303,7 +341,17 @@ export default function Map() {
                   <div onClick={() => handlePlaceCardClick(place)} style={{ cursor: 'pointer' }}>
                     <h5>{properties.name}</h5>
                     <p className="desc">{properties.description?.substring(0, 50)}...</p>
-                    <p className="price"><strong>${properties.price}</strong></p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
+                      <p className="price"><strong>€{properties.price}</strong></p>
+                      <div style={{ fontSize: '0.9rem' }}>
+                        <span style={{ color: '#ffc107' }}>
+                          {'★'.repeat(Math.round(avgRating))}{'☆'.repeat(5 - Math.round(avgRating))}
+                        </span>
+                        <span style={{ color: '#666', marginLeft: '0.25rem' }}>
+                          ({avgRating.toFixed(1)})
+                        </span>
+                      </div>
+                    </div>
                   </div>
                   <button 
                     className={`favorite-btn ${favorite ? 'favorited' : ''}`}

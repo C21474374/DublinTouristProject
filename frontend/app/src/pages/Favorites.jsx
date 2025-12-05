@@ -1,94 +1,141 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useAuth } from '../hooks/useAuth';
 import '../styles/Favorites.scss';
 
+const API_BASE = 'http://localhost:8000/api';
+
 export default function Favorites() {
+  const { token } = useAuth();
   const [favorites, setFavorites] = useState([]);
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const savedFavorites = localStorage.getItem('favorites');
-    if (savedFavorites) {
-      setFavorites(JSON.parse(savedFavorites));
+    fetchFavorites();
+  }, [token]);
+
+  const fetchFavorites = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API_BASE}/favorites/`);
+      setFavorites(response.data);
+    } catch (error) {
+      console.error('Error fetching favorites:', error);
+    } finally {
+      setLoading(false);
     }
-  }, []);
-
-  const removeFavorite = (placeId) => {
-    const updated = favorites.filter(fav => fav.id !== placeId);
-    setFavorites(updated);
-    localStorage.setItem('favorites', JSON.stringify(updated));
   };
 
-  const handleViewOnMap = (place) => {
-    // Store the place to focus on in sessionStorage
-    sessionStorage.setItem('focusPlace', JSON.stringify(place));
-    // Navigate to map
-    navigate('/');
+  const removeFavorite = async (placeId) => {
+    try {
+      await axios.delete(`${API_BASE}/favorites/${placeId}/`);
+      setFavorites(favorites.filter(fav => fav.id !== placeId));
+    } catch (error) {
+      console.error('Error removing favorite:', error);
+    }
   };
+
+  if (loading) {
+    return <div className="favorites-page"><p>Loading...</p></div>;
+  }
+
+  if (favorites.length === 0) {
+    return (
+      <div className="favorites-page">
+        <div className="empty-state">
+          <h2>❤️ No Favorites Yet</h2>
+          <p>Add places to your favorites on the map to see them here!</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="favorites-page">
-      <div className="favorites-container">
+      <div className="favorites-header">
         <h1>❤️ My Favorites</h1>
+        <p>{favorites.length} place{favorites.length !== 1 ? 's' : ''} saved</p>
+      </div>
 
-        {favorites.length === 0 ? (
-          <div className="empty-state">
-            <p>No favorites yet!</p>
-            <p className="subtitle">Explore places on the map and add them to your favorites.</p>
-          </div>
-        ) : (
-          <>
-            <p className="favorites-count">You have {favorites.length} favorite place{favorites.length !== 1 ? 's' : ''}</p>
-            <div className="favorites-grid">
-              {favorites.map((place) => {
-                const properties = place.properties || place;
-                return (
-                  <div key={place.id} className="favorite-card">
-                    <div className="card-header">
-                      <h3>{properties.name}</h3>
-                      <button
-                        className="remove-btn"
-                        onClick={() => removeFavorite(place.id)}
-                        title="Remove from favorites"
-                      >
-                        ✕
-                      </button>
-                    </div>
+      <div className="favorites-grid">
+        {favorites.map((place) => {
+          const props = place.properties || place;
+          const avgRating = props.average_rating || 0;
 
-                    <p className="description">{properties.description}</p>
+          return (
+            <div key={place.id} className="favorite-card">
+              <div className="card-header">
+                <div className="card-title">
+                  <h3>{props.name}</h3>
+                  <p className="category">{props.category_name || props.category}</p>
+                </div>
+                <button
+                  className="remove-btn"
+                  onClick={() => removeFavorite(place.id)}
+                  title="Remove from favorites"
+                >
+                  ✕
+                </button>
+              </div>
 
-                    <div className="card-info">
-                      <div className="info-item">
-                        <span className="label">Price:</span>
-                        <span className="value">${properties.price}</span>
-                      </div>
-                      <div className="info-item">
-                        <span className="label">Time:</span>
-                        <span className="value">{properties.time_required} min</span>
-                      </div>
-                      <div className="info-item">
-                        <span className="label">Popularity:</span>
-                        <span className="value">{properties.popularity} visits</span>
-                      </div>
-                    </div>
+              <p className="description">{props.description}</p>
 
-                    <div className="card-tags">
-                      {properties.child_friendly && <span className="tag">👶 Child Friendly</span>}
-                      {properties.wheelchair_access && <span className="tag">♿ Wheelchair Access</span>}
-                    </div>
-
-                    <button 
-                      className="view-btn"
-                      onClick={() => handleViewOnMap(place)}
-                    >
-                      View on Map →
-                    </button>
+              <div className="card-stats">
+                <div className="stat-item">
+                  <span className="stat-icon">⭐</span>
+                  <div className="stat-content">
+                    <span className="stat-label">Rating</span>
+                    <span className="stat-value">
+                      {avgRating > 0 ? (
+                        <>
+                          <span className="stars">
+                            {'★'.repeat(Math.round(avgRating))}{'☆'.repeat(5 - Math.round(avgRating))}
+                          </span>
+                          {avgRating.toFixed(1)}/5
+                        </>
+                      ) : (
+                        'No ratings'
+                      )}
+                    </span>
                   </div>
-                );
-              })}
+                </div>
+
+                <div className="stat-item">
+                  <span className="stat-icon">💰</span>
+                  <div className="stat-content">
+                    <span className="stat-label">Price</span>
+                    <span className="stat-value">€{props.price}</span>
+                  </div>
+                </div>
+
+                <div className="stat-item">
+                  <span className="stat-icon">⏱️</span>
+                  <div className="stat-content">
+                    <span className="stat-label">Duration</span>
+                    <span className="stat-value">{props.time_required} min</span>
+                  </div>
+                </div>
+
+                <div className="stat-item">
+                  <span className="stat-icon">👥</span>
+                  <div className="stat-content">
+                    <span className="stat-label">Popularity</span>
+                    <span className="stat-value">{props.popularity} visits</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="card-amenities">
+                {props.child_friendly && (
+                  <span className="amenity-tag child-friendly">👶 Child Friendly</span>
+                )}
+                {props.wheelchair_access && (
+                  <span className="amenity-tag wheelchair">♿ Wheelchair Access</span>
+                )}
+              </div>
             </div>
-          </>
-        )}
+          );
+        })}
       </div>
     </div>
   );

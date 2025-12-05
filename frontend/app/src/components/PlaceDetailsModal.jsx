@@ -60,7 +60,7 @@ export default function PlaceDetailsModal({ place, onClose, onRatingAdded }) {
             <div className="place-info">
               <div className="info-item">
                 <span className="label">💰 Price:</span>
-                <span className="value">${placeDetails.price}</span>
+                <span className="value">€{placeDetails.price}</span>
               </div>
               <div className="info-item">
                 <span className="label">⏱️ Time:</span>

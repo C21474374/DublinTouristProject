@@ -20,4 +20,8 @@ urlpatterns = [
     path("itineraries/<int:pk>/", views.ItineraryDetailAPIView.as_view(), name="itineraries-detail"),
     path("itineraries/<int:itinerary_id>/stops/", views.ItineraryStopListCreateAPIView.as_view(), name="itinerary-stops-list-create"),
     path("itinerarystops/<int:pk>/", views.ItineraryStopDetailAPIView.as_view(), name="itinerary-stops-detail"),
+
+    # Favorites
+    path("favorites/", views.FavoriteListCreateAPIView.as_view(), name="favorites-list-create"),
+    path("favorites/<int:pk>/", views.FavoriteDetailAPIView.as_view(), name="favorites-detail"),
 ]

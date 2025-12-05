@@ -5,7 +5,8 @@ from .models import (
     Place,
     Rating,
     Itinerary,
-    ItineraryStop
+    ItineraryStop,
+    Favorite
 )
 
 
@@ -146,3 +147,15 @@ class PlaceListSerializer(GeoFeatureModelSerializer):
             avg = sum(r.stars for r in ratings) / ratings.count()
             return round(avg, 1)
         return 0
+
+
+# ----------------------------
+# FAVORITE SERIALIZER
+# ----------------------------
+class FavoriteSerializer(serializers.ModelSerializer):
+    place = PlaceListSerializer(read_only=True)
+
+    class Meta:
+        model = Favorite
+        fields = ['id', 'place', 'created_at']
+        read_only_fields = ['user', 'created_at']
