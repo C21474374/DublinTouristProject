@@ -21,6 +21,11 @@ from .serializers import (
     ItineraryStopSerializer,
 )
 
+import os
+import csv
+from django.conf import settings
+from kaggle.api.kaggle_api_extended import KaggleApi
+
 
 # ---------------------------------------------------
 # CATEGORY LIST
@@ -336,3 +341,66 @@ class ItineraryStopDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
         if self.request.method in ("PATCH", "PUT"):
             return ItineraryStopWriteSerializer
         return ItineraryStopSerializer
+
+
+# ---------------------------------------------------
+# AREAS LIST (FROM KAGGLE API)
+# ---------------------------------------------------
+class AreasListAPIView(generics.ListAPIView):
+    """
+    GET /api/areas/
+    Fetches areas and towns from Kaggle dataset (no database storage)
+    """
+    permission_classes = []  # Public
+
+    def get(self, request, *args, **kwargs):
+        try:
+            # Authenticate with Kaggle using env variables
+            api = KaggleApi()
+            api.username = settings.KAGGLE_USERNAME
+            api.key = settings.KAGGLE_KEY
+            api.authenticate()
+            
+            # Download dataset to temporary location
+            temp_dir = '/tmp/kaggle_areas'
+            os.makedirs(temp_dir, exist_ok=True)
+            
+            api.dataset_download_files(
+                'bahiav/areas-and-towns-in-ireland',
+                path=temp_dir,
+                unzip=True
+            )
+            
+            # Find and read CSV file
+            csv_file = None
+            for file in os.listdir(temp_dir):
+                if file.endswith('.csv'):
+                    csv_file = os.path.join(temp_dir, file)
+                    break
+            
+            if not csv_file:
+                return Response(
+                    {'error': 'No CSV file found in dataset'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Parse CSV and return as JSON
+            areas = []
+            with open(csv_file, 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    areas.append({
+                        'area': row.get('Area', ''),
+                        'town': row.get('Town', '')
+                    })
+            
+            return Response({
+                'count': len(areas),
+                'data': areas
+            }, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
