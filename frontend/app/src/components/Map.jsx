@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
+import pointInPolygon from 'point-in-polygon';
 import axios from 'axios';
 import 'leaflet/dist/leaflet.css';
 import '../styles/Map.scss';
@@ -36,8 +37,37 @@ export default function Map() {
   const [areas, setAreas] = useState([]);
   const { token } = useAuth();
 
-  // ===== DEFINE ALL FUNCTIONS FIRST =====
-  
+  // ===== POINT IN POLYGON CHECK =====
+  const pointInPolygonCheck = (point, polygon) => {
+    const [lon, lat] = point;
+    
+    if (polygon.type === 'Polygon') {
+      const ring = polygon.coordinates[0];
+      return isPointInRing([lon, lat], ring);
+    } else if (polygon.type === 'MultiPolygon') {
+      return polygon.coordinates.some(poly => {
+        return isPointInRing([lon, lat], poly[0]);
+      });
+    }
+    return false;
+  };
+
+  const isPointInRing = (point, ring) => {
+    const [x, y] = point;
+    let inside = false;
+
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const xi = ring[i][0], yi = ring[i][1];
+      const xj = ring[j][0], yj = ring[j][1];
+
+      const intersect = ((yi > y) !== (yj > y))
+        && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+      if (intersect) inside = !inside;
+    }
+
+    return inside;
+  };
+
   const calculateDistance = (loc1, loc2) => {
     const [lat1, lon1] = loc1;
     const [lon2, lat2] = loc2;
@@ -51,16 +81,11 @@ export default function Map() {
     return R * c;
   };
 
-  const isPointInArea = (place, area) => {
-    return true;
-  };
-
   const getFilteredPlaces = () => {
     return places.filter((place) => {
       const props = place.properties || place;
       const placeId = props.id || place.id;
 
-      // Log first place to see structure
       if (places.length > 0 && places[0] === place) {
         console.log('🔍 PLACE DATA STRUCTURE:', JSON.stringify(place, null, 2));
       }
@@ -83,7 +108,6 @@ export default function Map() {
       }
 
       if (filters.nearbyOnly && userLocation) {
-        // Extract coords properly
         let coords;
         if (place.geometry?.coordinates?.length === 2) {
           coords = place.geometry.coordinates;
@@ -96,17 +120,35 @@ export default function Map() {
         }
 
         if (!coords || coords.length !== 2) {
-          console.warn(`⚠️ No coords found for ${props.name}`);
           return false;
         }
 
         const distance = calculateDistance(userLocation, coords);
-        console.log(`📏 ${props.name}: ${distance.toFixed(2)}km (limit: ${filters.nearbyDistance}km)`);
         if (distance > filters.nearbyDistance) return false;
       }
 
+      // ===== AREA FILTER WITH POINT IN POLYGON =====
       if (filters.selectedArea) {
-        if (!isPointInArea(place, filters.selectedArea)) {
+        const selectedAreaObj = areas.find(a => a.id === parseInt(filters.selectedArea));
+        
+        if (!selectedAreaObj) return false;
+
+        let coords;
+        if (place.geometry?.coordinates?.length === 2) {
+          coords = place.geometry.coordinates;
+        } else if (props.location?.coordinates?.length === 2) {
+          coords = props.location.coordinates;
+        } else if (props.latitude && props.longitude) {
+          coords = [parseFloat(props.longitude), parseFloat(props.latitude)];
+        } else if (place.latitude && place.longitude) {
+          coords = [parseFloat(place.longitude), parseFloat(place.latitude)];
+        }
+
+        if (!coords || coords.length !== 2) {
+          return false;
+        }
+
+        if (!pointInPolygonCheck(coords, selectedAreaObj.geojson)) {
           return false;
         }
       }
@@ -153,9 +195,8 @@ export default function Map() {
 
   useEffect(() => {
     renderMarkers();
-  }, [filteredPlaces, favorites, filters.nearbyDistance, userLocation, filters.nearbyOnly]);
+  }, [filteredPlaces, favorites, filters.nearbyDistance, userLocation, filters.nearbyOnly, filters.selectedArea]);
 
-  // Fetch places
   const fetchCategories = async () => {
     try {
       const response = await axios.get(`${API_BASE}/categories/`);
@@ -240,12 +281,9 @@ export default function Map() {
   };
 
   const handlePlaceCardClick = (place) => {
-    console.log('🔍 FULL PLACE OBJECT:', JSON.stringify(place, null, 2));
-    
     const props = place.properties || place;
     const placeId = props.id || place.id;
     
-    // Try all possible coordinate locations
     let coords;
     if (place.geometry?.coordinates?.length === 2) {
       coords = place.geometry.coordinates;
@@ -256,8 +294,6 @@ export default function Map() {
     } else if (place.latitude && place.longitude) {
       coords = [place.longitude, place.latitude];
     }
-
-    console.log(`📍 Clicked: ${props.name}, ID: ${placeId}, Coords: ${JSON.stringify(coords)}`);
 
     if (!coords || coords.length !== 2) {
       console.error('❌ Cannot find valid coordinates');
@@ -280,7 +316,6 @@ export default function Map() {
   const renderMarkers = () => {
     console.log('🎨 Rendering markers. Count:', filteredPlaces.length);
     
-    // Clear ALL markers first
     if (mapRef.current) {
       markersRef.current.forEach(marker => {
         mapRef.current.removeLayer(marker);
@@ -368,7 +403,7 @@ export default function Map() {
     try {
       const response = await fetch('http://localhost:8000/api/areas/');
       const data = await response.json();
-      setAreas(data);
+      setAreas(Array.isArray(data) ? data : data.results || []);
       console.log('✅ Areas loaded:', data);
     } catch (error) {
       console.error('Error fetching areas:', error);
@@ -383,19 +418,21 @@ export default function Map() {
   useEffect(() => {
     if (!mapRef.current || !areas || areas.length === 0) return;
 
-    // Remove old GeoJSON layer if exists
     if (geoJsonLayerRef.current) {
       mapRef.current.removeLayer(geoJsonLayerRef.current);
     }
 
-    // Create GeoJSON features from areas
-    const geoJsonFeatures = areas.map(area => ({
+    // ===== FILTER BOUNDARIES BASED ON SELECTED AREA =====
+    const areasToDisplay = filters.selectedArea 
+      ? areas.filter(a => a.id === parseInt(filters.selectedArea))
+      : areas;
+
+    const geoJsonFeatures = areasToDisplay.map(area => ({
       type: 'Feature',
-      properties: { name: area.name },
+      properties: { name: area.name, id: area.id },
       geometry: area.geojson
     }));
 
-    // Add GeoJSON layer to map
     const geoJsonLayer = L.geoJSON(geoJsonFeatures, {
       style: {
         color: '#667eea',
@@ -424,8 +461,8 @@ export default function Map() {
     }).addTo(mapRef.current);
 
     geoJsonLayerRef.current = geoJsonLayer;
-    console.log('🗺️ Area boundaries rendered');
-  }, [areas, mapRef.current]);
+    console.log('🗺️ Area boundaries rendered:', areasToDisplay.length);
+  }, [areas, filters.selectedArea, mapRef.current]);
 
   return (
     <>
