@@ -5,8 +5,7 @@ urlpatterns = [
     # Categories
     path("categories/", views.CategoryListAPIView.as_view(), name="category-list"),
 
-    # Areas (from Kaggle)
-    path("areas/", views.AreasListAPIView.as_view(), name="areas-list"),
+
 
     # Places
     path("places/", views.PlaceListAPIView.as_view(), name="places-list"),
