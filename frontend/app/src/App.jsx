@@ -5,7 +5,7 @@ import { FaBars } from 'react-icons/fa';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
 import Sidebar from './components/Sidebar.jsx';
-import Footer from './components/Footer.jsx';
+// import Footer from './components/Footer.jsx';
 
 import Home from './pages/Home.jsx';
 import Login from './pages/Login.jsx';
@@ -66,7 +66,7 @@ function AppContent() {
           <Route path="*" element={<Navigate to="/not-found" />} />
         </Routes>
 
-        <Footer />
+        {/* <Footer /> */}
       </main>
     </div>
   );
