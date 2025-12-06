@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import '../styles/Map.scss';
 import RatingModal from './RatingModal';
 import PlaceDetailsModal from './PlaceDetailsModal';
+import Filters from './Filters';
 import { useAuth } from '../hooks/useAuth';
 
 const API_BASE = 'http://localhost:8000/api';
@@ -21,32 +22,104 @@ export default function Map() {
     category: '',
     childFriendly: false,
     wheelchairAccess: false,
+    favoritesOnly: false,
+    nearbyOnly: false,
+    nearbyDistance: 5,
+    selectedArea: null,
   });
   const [selectedPlace, setSelectedPlace] = useState(null);
-  const [showRatingModal, setShowRatingModal] = useState(false);
-  const [placeDetails, setPlaceDetails] = useState(null);
   const [showPlaceModal, setShowPlaceModal] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
+  const [areas, setAreas] = useState([]);
   const { token } = useAuth();
 
-  // Load favorites from localStorage on mount
-  useEffect(() => {
-    const savedFavorites = localStorage.getItem('favorites');
-    if (savedFavorites) {
-      setFavorites(JSON.parse(savedFavorites));
-    }
-  }, []);
+  // ===== DEFINE ALL FUNCTIONS FIRST =====
+  
+  const calculateDistance = (loc1, loc2) => {
+    const [lat1, lon1] = loc1;
+    const [lon2, lat2] = loc2;
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
 
-  // Save favorites to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('favorites', JSON.stringify(favorites));
-  }, [favorites]);
+  const isPointInArea = (place, area) => {
+    return true;
+  };
 
-  // Fetch categories on mount
+  const getFilteredPlaces = () => {
+    return places.filter((place) => {
+      const props = place.properties || place;
+      const placeId = props.id || place.id;
+
+      // Log first place to see structure
+      if (places.length > 0 && places[0] === place) {
+        console.log('🔍 PLACE DATA STRUCTURE:', JSON.stringify(place, null, 2));
+      }
+
+      if (filters.category && props.category !== parseInt(filters.category)) {
+        return false;
+      }
+
+      if (filters.childFriendly && !props.child_friendly) {
+        return false;
+      }
+
+      if (filters.wheelchairAccess && !props.wheelchair_access) {
+        return false;
+      }
+
+      if (filters.favoritesOnly) {
+        const isFav = favorites.some(fav => fav.place?.id === placeId);
+        if (!isFav) return false;
+      }
+
+      if (filters.nearbyOnly && userLocation) {
+        // Extract coords properly
+        let coords;
+        if (place.geometry?.coordinates?.length === 2) {
+          coords = place.geometry.coordinates;
+        } else if (props.location?.coordinates?.length === 2) {
+          coords = props.location.coordinates;
+        } else if (props.latitude && props.longitude) {
+          coords = [parseFloat(props.longitude), parseFloat(props.latitude)];
+        } else if (place.latitude && place.longitude) {
+          coords = [parseFloat(place.longitude), parseFloat(place.latitude)];
+        }
+
+        if (!coords || coords.length !== 2) {
+          console.warn(`⚠️ No coords found for ${props.name}`);
+          return false;
+        }
+
+        const distance = calculateDistance(userLocation, coords);
+        console.log(`📏 ${props.name}: ${distance.toFixed(2)}km (limit: ${filters.nearbyDistance}km)`);
+        if (distance > filters.nearbyDistance) return false;
+      }
+
+      if (filters.selectedArea) {
+        if (!isPointInArea(place, filters.selectedArea)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  };
+
+  const filteredPlaces = getFilteredPlaces();
+
+  // ===== useEffects =====
+
   useEffect(() => {
     fetchCategories();
   }, []);
 
-  // Initialize map ONCE
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
@@ -59,7 +132,6 @@ export default function Map() {
         maxNativeZoom: 18,
       }).addTo(mapRef.current);
 
-      // Fix for map not initializing properly
       setTimeout(() => {
         if (mapRef.current) {
           mapRef.current.invalidateSize();
@@ -68,231 +140,19 @@ export default function Map() {
     } catch (error) {
       console.error('Map initialization error:', error);
     }
-
-    // Cleanup
-    return () => {
-      // Don't destroy on unmount
-    };
   }, []);
 
-  // Focus on place from Favorites page
-  useEffect(() => {
-    const focusPlaceStr = sessionStorage.getItem('focusPlace');
-    if (focusPlaceStr && mapRef.current) {
-      const focusPlace = JSON.parse(focusPlaceStr);
-      const coords = focusPlace.geometry?.coordinates || 
-                     focusPlace.location?.coordinates || 
-                     [focusPlace.longitude, focusPlace.latitude];
-
-      if (coords && coords.length === 2) {
-        mapRef.current.setView([coords[1], coords[0]], 16, { animate: true });
-        
-        // Find and open the marker
-        setTimeout(() => {
-          markersRef.current.forEach(marker => {
-            if (marker.getLatLng().lat === coords[1] && marker.getLatLng().lng === coords[0]) {
-              marker.openPopup();
-            }
-          });
-        }, 300);
-      }
-
-      // Clear the sessionStorage
-      sessionStorage.removeItem('focusPlace');
-    }
-  }, []);
-
-  // Check if we need to center on a specific place from Favorites
-  useEffect(() => {
-    const centerPlace = sessionStorage.getItem('centerPlace');
-    if (centerPlace && mapRef.current && markersRef.current.length > 0) {
-      try {
-        const place = JSON.parse(centerPlace);
-        handlePlaceCardClick(place);
-        sessionStorage.removeItem('centerPlace');
-      } catch (error) {
-        console.error('Error centering on place:', error);
-        sessionStorage.removeItem('centerPlace');
-      }
-    }
-  }, [markersRef.current.length]);
-
-  // Fetch places when filters change
-  useEffect(() => {
-    fetchPlaces();
-  }, [filters]);
-
-  // Update markers when places change
-  useEffect(() => {
-    if (!mapRef.current) return;
-
-    // Clear old markers
-    markersRef.current.forEach(marker => {
-      mapRef.current.removeLayer(marker);
-    });
-    markersRef.current = [];
-
-    // Add new markers
-    places.forEach((place) => {
-      const coords = place.geometry?.coordinates || 
-                     place.location?.coordinates || 
-                     [place.longitude, place.latitude];
-
-      if (!coords || coords.length < 2) return;
-
-      try {
-        const isFavorite = favorites.some(fav => fav.id === place.id);
-        const marker = L.marker([coords[1], coords[0]]).addTo(mapRef.current);
-        const properties = place.properties || place;
-        const avgRating = properties.average_rating || 0;
-
-        const popupContent = document.createElement('div');
-        popupContent.className = 'map-popup';
-        popupContent.innerHTML = `
-          <h5>${properties.name || 'Unknown'}</h5>
-          <p style="margin: 0.5rem 0; font-size: 0.85rem; color: #666;">
-            <span style="color: #ffc107;">
-              ${'★'.repeat(Math.round(avgRating))}${'☆'.repeat(5 - Math.round(avgRating))}
-            </span>
-            (${avgRating.toFixed(1)}/5)
-          </p>
-          <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
-            <button class="favorite-popup-btn" style="flex: 1; padding: 0.5rem; font-size: 0.85rem;">
-              ${isFavorite ? '❤️' : '🤍'}
-            </button>
-            <button class="details-popup-btn" style="flex: 1; padding: 0.5rem; font-size: 0.85rem; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
-              View More →
-            </button>
-          </div>
-        `;
-
-        // Store place data on the marker for later access
-        marker.placeData = place;
-
-        
-        // Add event listener to popup after it opens
-        marker.on('popupopen', () => {
-          const popupElement = marker.getPopup().getElement();
-          
-          const favBtn = popupElement.querySelector('.favorite-popup-btn');
-          favBtn.onclick = (e) => {
-            e.stopPropagation();
-            toggleFavorite(marker.placeData);
-          };
-
-          const detailsBtn = popupElement.querySelector('.details-popup-btn');
-          detailsBtn.onclick = (e) => {
-            e.stopPropagation();
-            fetchPlaceDetails(marker.placeData);
-            setShowPlaceModal(true);
-          };
-        });
-
-        marker.bindPopup(popupContent);
-        markersRef.current.push(marker);
-      } catch (error) {
-        console.error('Error adding marker:', error);
-      }
-    });
-  }, [places, favorites]); // <-- IMPORTANT: Add favorites here
-
-  // Replace the two useEffects with this:
   useEffect(() => {
     if (token) {
-      console.log('🔄 Fetching favourites with token:', token);
       fetchFavorites();
     }
   }, [token]);
 
-  // Render markers whenever places or favorites change
   useEffect(() => {
-    console.log('📍 Rendering markers. Places:', places.length, 'Favourites:', favorites.length);
-    if (places.length > 0) {
-      renderMarkers();
-    }
-  }, [places, favorites]);
+    renderMarkers();
+  }, [filteredPlaces, favorites, filters.nearbyDistance, userLocation, filters.nearbyOnly]);
 
-  const renderMarkers = () => {
-    console.log('🎨 renderMarkers called. Favorites:', favorites);
-    console.log('📋 Favorite IDs:', favorites.map(f => f.id)); // ADD THIS LINE
-    
-    if (!mapRef.current) {
-      console.warn('⚠️ Map ref not ready');
-      return;
-    }
-
-    markersRef.current.forEach(marker => {
-      mapRef.current.removeLayer(marker);
-    });
-    markersRef.current = [];
-
-    places.forEach((place) => {
-      const coords = place.geometry?.coordinates || 
-                     place.location?.coordinates || 
-                     [place.longitude, place.latitude];
-
-      if (!coords || coords.length < 2) return;
-
-      try {
-        const isFavorite = favorites.some(fav => fav.id === place.id);
-        console.log(`✅ Place: ${place.id} - "${place.properties?.name}" - Favourite: ${isFavorite}`);
-        
-        const marker = L.marker([coords[1], coords[0]]).addTo(mapRef.current);
-        const properties = place.properties || place;
-        const avgRating = properties.average_rating || 0;
-
-        const popupContent = document.createElement('div');
-        popupContent.className = 'map-popup';
-        popupContent.innerHTML = `
-          <h5>${properties.name || 'Unknown'}</h5>
-          <p style="margin: 0.5rem 0; font-size: 0.85rem; color: #666;">
-            <span style="color: #ffc107;">
-              ${'★'.repeat(Math.round(avgRating))}${'☆'.repeat(5 - Math.round(avgRating))}
-            </span>
-            (${avgRating.toFixed(1)}/5)
-          </p>
-          <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
-            <button class="favorite-popup-btn" style="flex: 1; padding: 0.5rem; font-size: 0.85rem;">
-              ${isFavorite ? '❤️' : '🤍'}
-            </button>
-            <button class="details-popup-btn" style="flex: 1; padding: 0.5rem; font-size: 0.85rem; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
-              View More →
-            </button>
-          </div>
-        `;
-
-        marker.placeData = place;
-
-        marker.on('popupopen', () => {
-          const popupElement = marker.getPopup().getElement();
-          
-          const favBtn = popupElement.querySelector('.favorite-popup-btn');
-          favBtn.onclick = (e) => {
-            e.stopPropagation();
-            toggleFavorite(marker.placeData);
-          };
-
-          const detailsBtn = popupElement.querySelector('.details-popup-btn');
-          detailsBtn.onclick = (e) => {
-            e.stopPropagation();
-            fetchPlaceDetails(marker.placeData);
-            setShowPlaceModal(true);
-          };
-        });
-
-        marker.bindPopup(popupContent);
-        markersRef.current.push(marker);
-      } catch (error) {
-        console.error('Error adding marker:', error);
-      }
-    });
-  };
-
-  // Fetch favorites from backend on mount
-  useEffect(() => {
-    fetchFavorites();
-  }, []);
-
+  // Fetch places
   const fetchCategories = async () => {
     try {
       const response = await axios.get(`${API_BASE}/categories/`);
@@ -305,20 +165,7 @@ export default function Map() {
   const fetchPlaces = async () => {
     try {
       setLoading(true);
-      let url = `${API_BASE}/places/`;
-
-      const params = new URLSearchParams();
-      if (filters.category) {
-        params.append('category', filters.category);
-      }
-      if (filters.childFriendly) params.append('child_friendly', true);
-      if (filters.wheelchairAccess) params.append('wheelchair_access', true);
-
-      if (params.toString()) {
-        url += `?${params.toString()}`;
-      }
-
-      const response = await axios.get(url);
+      const response = await axios.get(`${API_BASE}/places/`);
       setPlaces(response.data.features || response.data);
     } catch (error) {
       console.error('Error fetching places:', error);
@@ -328,89 +175,56 @@ export default function Map() {
     }
   };
 
+  useEffect(() => {
+    fetchPlaces();
+  }, []);
+
   const fetchFavorites = async () => {
     try {
-      console.log('📥 Fetching favourites from API...');
       const response = await axios.get(`${API_BASE}/favourites/`, {
         headers: { Authorization: `Token ${token}` }
       });
-      console.log('✅ Raw response:', response.data);
-      console.log('📊 Response structure:', response.data[0]); // Log first item
-    
       const favoritesData = response.data.map(fav => ({
         id: fav.place.id,
         ...fav
       }));
-      console.log('✅ Processed favourites:', favoritesData);
-      console.log('🔑 Processed IDs:', favoritesData.map(f => f.id));
       setFavorites(favoritesData);
     } catch (error) {
-      console.error('❌ Error fetching favourites:', error);
+      console.error('Error fetching favourites:', error);
     }
   };
 
   const fetchPlaceDetails = async (place) => {
     try {
       const response = await axios.get(`${API_BASE}/places/${place.id}/`);
-      setPlaceDetails(response.data.properties || response.data);
       setSelectedPlace(place);
+      setShowPlaceModal(true);
     } catch (error) {
       console.error('Error fetching place details:', error);
     }
   };
 
-  const handleFilterChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFilters({
-      ...filters,
-      [name]: type === 'checkbox' ? checked : value,
-    });
-  };
-
-  const handlePlaceCardClick = (place) => {
-    const coords = place.geometry?.coordinates || 
-                   place.location?.coordinates || 
-                   [place.longitude, place.latitude];
-
-    if (coords && coords.length === 2 && mapRef.current) {
-      // Zoom to the place with animation
-      mapRef.current.setView([coords[1], coords[0]], 16, { animate: true });
-
-      // Find and open the marker popup
-      markersRef.current.forEach(marker => {
-        if (marker.getLatLng().lat === coords[1] && marker.getLatLng().lng === coords[0]) {
-          marker.openPopup();
-        }
-      });
-    }
-  };
-
   const isFavorite = (placeId) => {
-    console.log('🔍 Checking if favorite. PlaceId:', placeId, 'Favorites:', favorites.map(f => ({ id: f.id, place_id: f.place?.id })));
     return favorites.some(fav => fav.place?.id === placeId);
   };
 
   const toggleFavorite = async (place) => {
     try {
       const placeId = place.id || place.properties?.id;
-      console.log('🔄 Toggling favourite for place:', placeId);
       
       if (!placeId) {
-        console.error('❌ No place ID found:', place);
+        console.error('No place ID found');
         return;
       }
 
-      const isFav = favorites.some(fav => fav.place?.id === placeId);
-      console.log('📊 Currently favourited:', isFav);
+      const isFav = isFavorite(placeId);
 
       if (isFav) {
-        console.log('🗑️ Deleting favourite...');
         await axios.delete(`${API_BASE}/favourites/${placeId}/`, {
           headers: { Authorization: `Token ${token}` }
         });
         setFavorites(favorites.filter(fav => fav.place?.id !== placeId));
       } else {
-        console.log('➕ Adding favourite...');
         await axios.post(`${API_BASE}/favourites/`, 
           { place: parseInt(placeId) },
           { headers: { Authorization: `Token ${token}` } }
@@ -418,52 +232,174 @@ export default function Map() {
         await fetchFavorites();
       }
     } catch (error) {
-      console.error('❌ Error toggling favourite:', error.response?.data || error);
+      console.error('Error toggling favourite:', error);
     }
+  };
+
+  const handlePlaceCardClick = (place) => {
+    console.log('🔍 FULL PLACE OBJECT:', JSON.stringify(place, null, 2));
+    
+    const props = place.properties || place;
+    const placeId = props.id || place.id;
+    
+    // Try all possible coordinate locations
+    let coords;
+    if (place.geometry?.coordinates?.length === 2) {
+      coords = place.geometry.coordinates;
+    } else if (props.location?.coordinates?.length === 2) {
+      coords = props.location.coordinates;
+    } else if (props.latitude && props.longitude) {
+      coords = [props.longitude, props.latitude];
+    } else if (place.latitude && place.longitude) {
+      coords = [place.longitude, place.latitude];
+    }
+
+    console.log(`📍 Clicked: ${props.name}, ID: ${placeId}, Coords: ${JSON.stringify(coords)}`);
+
+    if (!coords || coords.length !== 2) {
+      console.error('❌ Cannot find valid coordinates');
+      return;
+    }
+
+    try {
+      mapRef.current.setView([coords[1], coords[0]], 16, { animate: true });
+
+      markersRef.current.forEach(marker => {
+        if (marker.getLatLng().lat === coords[1] && marker.getLatLng().lng === coords[0]) {
+          marker.openPopup();
+        }
+      });
+    } catch (error) {
+      console.error('Error zooming map:', error);
+    }
+  };
+
+  const renderMarkers = () => {
+    console.log('🎨 Rendering markers. Count:', filteredPlaces.length);
+    
+    // Clear ALL markers first
+    if (mapRef.current) {
+      markersRef.current.forEach(marker => {
+        mapRef.current.removeLayer(marker);
+      });
+    }
+    markersRef.current = [];
+
+    if (!mapRef.current) return;
+
+    filteredPlaces.forEach((place) => {
+      const props = place.properties || place;
+      const placeId = props.id || place.id;
+      
+      let coords;
+      if (place.geometry?.coordinates?.length === 2) {
+        coords = place.geometry.coordinates;
+      } else if (props.location?.coordinates?.length === 2) {
+        coords = props.location.coordinates;
+      } else if (props.latitude && props.longitude) {
+        coords = [props.longitude, props.latitude];
+      } else if (place.latitude && place.longitude) {
+        coords = [place.longitude, place.latitude];
+      }
+
+      if (!coords || coords.length !== 2 || !placeId) {
+        console.warn(`⚠️ Invalid data - ${props.name}`);
+        return;
+      }
+
+      try {
+        const isFav = isFavorite(placeId);
+        const marker = L.marker([coords[1], coords[0]]).addTo(mapRef.current);
+        const avgRating = props.average_rating || 0;
+
+        const createPopupContent = (isFavStatus) => {
+          const popupContent = document.createElement('div');
+          popupContent.className = 'map-popup';
+          popupContent.innerHTML = `
+            <h5>${props.name || 'Unknown'}</h5>
+            <p style="margin: 0.5rem 0; font-size: 0.85rem; color: #666;">
+              <span style="color: #ffc107;">
+                ${'★'.repeat(Math.round(avgRating))}${'☆'.repeat(5 - Math.round(avgRating))}
+              </span>
+              (${avgRating.toFixed(1)}/5)
+            </p>
+            <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+              <button class="favorite-popup-btn" style="flex: 1; padding: 0.5rem; font-size: 0.85rem;">
+                ${isFavStatus ? '❤️' : '🤍'}
+              </button>
+              <button class="details-popup-btn" style="flex: 1; padding: 0.5rem; font-size: 0.85rem; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                View More →
+              </button>
+            </div>
+          `;
+          return popupContent;
+        };
+
+        marker.placeData = place;
+        marker.bindPopup(createPopupContent(isFav));
+
+        marker.on('popupopen', () => {
+          const popupElement = marker.getPopup().getElement();
+          
+          const favBtn = popupElement.querySelector('.favorite-popup-btn');
+          favBtn.onclick = (e) => {
+            e.stopPropagation();
+            toggleFavorite(marker.placeData);
+          };
+
+          const detailsBtn = popupElement.querySelector('.details-popup-btn');
+          detailsBtn.onclick = (e) => {
+            e.stopPropagation();
+            fetchPlaceDetails(marker.placeData);
+          };
+        });
+
+        markersRef.current.push(marker);
+      } catch (error) {
+        console.error('Error adding marker:', error);
+      }
+    });
   };
 
   return (
     <div className="map-wrapper">
-      <div className="filters-sidebar">
-        <h3>🔍 Filters</h3>
+      <div className="left-panel">
+        <h1>🗺️ Tourist Guide</h1>
         
-        <select name="category" value={filters.category} onChange={handleFilterChange}>
-          <option value="">All Categories</option>
-          {categories.map((cat) => (
-            <option key={cat.id} value={cat.id}>
-              {cat.name}
-            </option>
-          ))}
-        </select>
-
-        <label>
-          <input
-            type="checkbox"
-            name="childFriendly"
-            checked={filters.childFriendly}
-            onChange={handleFilterChange}
-          />
-          👶 Child Friendly
-        </label>
-
-        <label>
-          <input
-            type="checkbox"
-            name="wheelchairAccess"
-            checked={filters.wheelchairAccess}
-            onChange={handleFilterChange}
-          />
-          ♿ Wheelchair Access
-        </label>
+        {/* USE FILTERS COMPONENT HERE */}
+        <Filters 
+          filters={filters}
+          setFilters={setFilters}
+          categories={categories}
+          areas={areas}
+          onGetLocation={() => {
+            if (navigator.geolocation) {
+              navigator.geolocation.getCurrentPosition(
+                (position) => {
+                  const { latitude, longitude } = position.coords;
+                  console.log('📍 User location:', latitude, longitude);
+                  setUserLocation([latitude, longitude]);
+                },
+                (error) => {
+                  console.error('Geolocation error:', error);
+                  alert('Please enable location access to use nearby filter');
+                  setFilters(prev => ({ ...prev, nearbyOnly: false }));
+                }
+              );
+            } else {
+              alert('Geolocation is not supported by your browser');
+            }
+          }}
+        />
 
         <div className="places-list">
-          <h4>📍 Places ({places.length})</h4>
+          <h4>📍 Places ({filteredPlaces.length})</h4>
           {loading ? (
             <p className="status">Loading...</p>
-          ) : places.length === 0 ? (
+          ) : filteredPlaces.length === 0 ? (
             <p className="status">No places found</p>
           ) : (
-            places.map((place, idx) => {
+            filteredPlaces.map((place, idx) => {
               const properties = place.properties || place;
               const favorite = isFavorite(place.id);
               const avgRating = properties.average_rating || 0;
@@ -491,7 +427,10 @@ export default function Map() {
                   </div>
                   <button 
                     className={`favorite-btn ${favorite ? 'favorited' : ''}`}
-                    onClick={() => toggleFavorite(place)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavorite(place);
+                    }}
                     title={favorite ? 'Remove from favorites' : 'Add to favorites'}
                   >
                     {favorite ? '❤️' : '🤍'}
@@ -504,17 +443,6 @@ export default function Map() {
       </div>
 
       <div className="map-container" ref={mapContainerRef}></div>
-
-      {showRatingModal && placeDetails && (
-        <RatingModal
-          place={selectedPlace}
-          onClose={() => setShowRatingModal(false)}
-          onRatingAdded={() => {
-            fetchPlaces(); // Refresh to get updated ratings
-          }}
-          userRating={placeDetails.user_rating}
-        />
-      )}
 
       {showPlaceModal && selectedPlace && (
         <PlaceDetailsModal
