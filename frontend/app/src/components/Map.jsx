@@ -14,6 +14,7 @@ export default function Map() {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
   const markersRef = useRef([]);
+  const geoJsonLayerRef = useRef(null);
   const [places, setPlaces] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -367,7 +368,8 @@ export default function Map() {
     try {
       const response = await fetch('http://localhost:8000/api/areas/');
       const data = await response.json();
-      setAreas(data.data);
+      setAreas(data);
+      console.log('✅ Areas loaded:', data);
     } catch (error) {
       console.error('Error fetching areas:', error);
     }
@@ -376,6 +378,54 @@ export default function Map() {
   useEffect(() => {
     fetchAreas();
   }, []);
+
+  // Display area boundaries on map
+  useEffect(() => {
+    if (!mapRef.current || !areas || areas.length === 0) return;
+
+    // Remove old GeoJSON layer if exists
+    if (geoJsonLayerRef.current) {
+      mapRef.current.removeLayer(geoJsonLayerRef.current);
+    }
+
+    // Create GeoJSON features from areas
+    const geoJsonFeatures = areas.map(area => ({
+      type: 'Feature',
+      properties: { name: area.name },
+      geometry: area.geojson
+    }));
+
+    // Add GeoJSON layer to map
+    const geoJsonLayer = L.geoJSON(geoJsonFeatures, {
+      style: {
+        color: '#667eea',
+        weight: 2,
+        opacity: 0.7,
+        fillOpacity: 0.1,
+        dashArray: '5, 5'
+      },
+      onEachFeature: (feature, layer) => {
+        layer.bindPopup(`<strong>${feature.properties.name}</strong>`);
+        layer.on('mouseover', function() {
+          this.setStyle({
+            opacity: 1,
+            fillOpacity: 0.2,
+            weight: 3
+          });
+        });
+        layer.on('mouseout', function() {
+          this.setStyle({
+            opacity: 0.7,
+            fillOpacity: 0.1,
+            weight: 2
+          });
+        });
+      }
+    }).addTo(mapRef.current);
+
+    geoJsonLayerRef.current = geoJsonLayer;
+    console.log('🗺️ Area boundaries rendered');
+  }, [areas, mapRef.current]);
 
   return (
     <>
