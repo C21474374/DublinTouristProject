@@ -1,6 +1,18 @@
 import '../styles/Filters.scss';
 
-export default function Filters({ filters, setFilters, categories, areas, onGetLocation }) {
+export default function Filters({ 
+  filters, 
+  setFilters, 
+  categories, 
+  areas, 
+  onGetLocation,
+  filteredPlaces,
+  loading,
+  favorites,
+  onPlaceCardClick,
+  onToggleFavorite,
+  isFavorite
+}) {
   return (
     <div className="filters-panel">
       <h3>🔍 Filters</h3>
@@ -89,6 +101,56 @@ export default function Filters({ filters, setFilters, categories, areas, onGetL
           <option key={area.id} value={area.id}>{area.name}</option>
         ))}
       </select>
+
+      {/* Places List */}
+      <div className="places-list">
+        <h4>📍 Places ({filteredPlaces.length})</h4>
+        {loading ? (
+          <p className="status">Loading...</p>
+        ) : filteredPlaces.length === 0 ? (
+          <p className="status">No places found</p>
+        ) : (
+          filteredPlaces.map((place, idx) => {
+            const properties = place.properties || place;
+            const favorite = isFavorite(place.id);
+            const avgRating = properties.average_rating || 0;
+            
+            return (
+              <div 
+                key={idx} 
+                className="place-card"
+                onClick={() => onPlaceCardClick(place)}
+              >
+                <div style={{ cursor: 'pointer' }}>
+                  <h5>{properties.name}</h5>
+                  <p className="desc">{properties.description?.substring(0, 50)}...</p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
+                    <p className="price"><strong>€{properties.price}</strong></p>
+                    <div style={{ fontSize: '0.9rem' }}>
+                      <span style={{ color: '#ffc107' }}>
+                        {'★'.repeat(Math.round(avgRating))}{'☆'.repeat(5 - Math.round(avgRating))}
+                      </span>
+                      <span style={{ color: '#666', marginLeft: '0.25rem' }}>
+                        ({avgRating.toFixed(1)})
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <button 
+                  className={`favorite-btn ${favorite ? 'favorited' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleFavorite(place);
+                  }}
+                  title={favorite ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  {favorite ? '❤️' : '🤍'}
+                </button>
+              </div>
+            );
+          })
+        )}
+      </div>
     </div>
   );
 }
