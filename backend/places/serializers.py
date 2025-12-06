@@ -7,9 +7,8 @@ from .models import (
     Rating,
     Itinerary,
     ItineraryStop,
- 
+    Area,
 )
-
 
 # ----------------------------
 # CATEGORY SERIALIZER
@@ -18,7 +17,6 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ["id", "name", "icon"]
-
 
 # ----------------------------
 # PLACE SERIALIZER (GeoJSON for Leaflet)
@@ -43,7 +41,6 @@ class PlaceSerializer(GeoFeatureModelSerializer):
             "category",
         ]
 
-
 # ----------------------------
 # RATING SERIALIZER
 # ----------------------------
@@ -59,7 +56,6 @@ class RatingSerializer(serializers.ModelSerializer):
         # Automatically set the user from the request
         validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
-
 
 # ----------------------------
 # ITINERARY STOP SERIALIZER
@@ -77,7 +73,6 @@ class ItineraryStopSerializer(serializers.ModelSerializer):
             "place"
         ]
 
-
 # ----------------------------
 # ITINERARY SERIALIZER
 # ----------------------------
@@ -94,7 +89,6 @@ class ItinerarySerializer(serializers.ModelSerializer):
             "created_at",
             "stops",
         ]
-
 
 # ----------------------------
 # PLACE DETAIL SERIALIZER
@@ -140,7 +134,6 @@ class PlaceDetailSerializer(serializers.ModelSerializer):
                 return RatingSerializer(rating).data
         return None
 
-
 # ----------------------------
 # PLACE LIST SERIALIZER
 # ----------------------------
@@ -162,6 +155,14 @@ class PlaceListSerializer(GeoFeatureModelSerializer):
         if ratings:
             return sum(r.stars for r in ratings) / len(ratings)
         return 0
+
+# ----------------------------
+# AREA SERIALIZER
+# ----------------------------
+class AreaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Area
+        fields = ['id', 'name', 'latitude', 'longitude', 'geojson']
 
 
 

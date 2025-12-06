@@ -83,3 +83,15 @@ class ItineraryStop(models.Model):
     def __str__(self):
         return f"{self.itinerary.name} - {self.place.name} (Stop {self.order})"
 
+class Area(models.Model):
+    name = models.CharField(max_length=200, unique=True)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    geojson = models.JSONField()
+    
+    class Meta:
+        verbose_name_plural = "Areas"
+    
+    def __str__(self):
+        return self.name
+

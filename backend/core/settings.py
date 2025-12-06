@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     # Your apps
     'places',
     'accounts',
+    
 ]
 
 MIDDLEWARE = [

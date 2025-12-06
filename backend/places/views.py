@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.exceptions import PermissionDenied
 
-from .models import Category, Place, Rating, Itinerary, ItineraryStop
+from .models import Category, Place, Rating, Itinerary, ItineraryStop, Area
 from .serializers import (
     CategorySerializer,
     PlaceSerializer,
@@ -19,6 +19,7 @@ from .serializers import (
     RatingSerializer,
     ItinerarySerializer,
     ItineraryStopSerializer,
+    AreaSerializer,
 )
 
 import os
@@ -341,5 +342,18 @@ class ItineraryStopDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
         if self.request.method in ("PATCH", "PUT"):
             return ItineraryStopWriteSerializer
         return ItineraryStopSerializer
+
+
+# ---------------------------------------------------
+# AREA LIST
+# ---------------------------------------------------
+class AreaListAPIView(generics.ListAPIView):
+    """
+    GET /api/areas/
+    Returns all Irish areas with GeoJSON boundaries
+    """
+    queryset = Area.objects.all()
+    serializer_class = AreaSerializer
+    permission_classes = []
 
 

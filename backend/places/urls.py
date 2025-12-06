@@ -5,7 +5,8 @@ urlpatterns = [
     # Categories
     path("categories/", views.CategoryListAPIView.as_view(), name="category-list"),
 
-
+    # Areas
+    path("areas/", views.AreaListAPIView.as_view(), name="areas-list"),
 
     # Places
     path("places/", views.PlaceListAPIView.as_view(), name="places-list"),
