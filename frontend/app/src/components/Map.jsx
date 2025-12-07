@@ -28,7 +28,7 @@ export default function Map() {
   const [showFilters, setShowFilters] = useState(false);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [selectedPlaceForPhoto, setSelectedPlaceForPhoto] = useState(null);
-
+  const [directionsOpen, setDirectionsOpen] = useState(false);
   const [filters, setFilters] = useState({
     category: '',
     childFriendly: false,
@@ -352,12 +352,10 @@ export default function Map() {
       return;
     }
 
-    // Remove old route
     if (routingControlRef.current) {
       mapRef.current.removeControl(routingControlRef.current);
     }
 
-    // Create new route
     const newRoutingControl = L.Routing.control({
       waypoints: [
         L.latLng(userLocation[0], userLocation[1]),
@@ -372,7 +370,18 @@ export default function Map() {
     }).addTo(mapRef.current);
 
     routingControlRef.current = newRoutingControl;
+    setDirectionsOpen(true);
     console.log('🧭 Directions shown to', props.name);
+  };
+
+  // Add this new function to close directions
+  const closeDirections = () => {
+    if (routingControlRef.current) {
+      mapRef.current.removeControl(routingControlRef.current);
+      routingControlRef.current = null;
+      setDirectionsOpen(false);
+      console.log('🧭 Directions closed');
+    }
   };
 
   const handlePlaceCardClick = (place) => {
@@ -599,6 +608,28 @@ export default function Map() {
       >
         📍 My Location
       </button>
+
+      {directionsOpen && (
+        <button 
+          onClick={closeDirections}
+          style={{
+            position: 'absolute',
+            bottom: '130px',
+            right: '20px',
+            zIndex: 999,
+            padding: '10px 15px',
+            backgroundColor: '#dc3545',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: 'bold'
+          }}
+        >
+          ✕ Close Directions
+        </button>
+      )}
 
       <div className="map-wrapper">
         <div className={`left-panel ${showFilters ? 'show' : ''}`}>
