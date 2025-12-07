@@ -6,19 +6,17 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.authtoken.models import Token
-from rest_framework import serializers  # ADD THIS LINE
+from rest_framework import serializers
 
-from .models import TouristProfile, FavouritePlace, VisitedPlace, PlacePhoto
+from .models import TouristProfile, FavouritePlace, PlacePhoto
 from .serializers import (
     TouristProfileSerializer,
-    FavouritePlaceSerializer,  # USE THIS
-    VisitedPlaceSerializer,
+    FavouritePlaceSerializer,
     PlacePhotoSerializer,
     UserRegisterSerializer,
     UserLoginSerializer,
     UserSerializer,
 )
-
 from places.models import Place
 
 
@@ -98,8 +96,8 @@ class MeProfileAPIView(generics.RetrieveAPIView):
 # ---------------------------------------------------
 class FavouriteListCreateAPIView(generics.ListCreateAPIView):
     """
-    GET  /api/favorites/
-    POST /api/favorites/  { "place": 1 }
+    GET  /api/favourites/
+    POST /api/favourites/  { "place": 1 }
     """
     serializer_class = FavouritePlaceSerializer
     permission_classes = [IsAuthenticated]
@@ -118,7 +116,6 @@ class FavouriteListCreateAPIView(generics.ListCreateAPIView):
         except Place.DoesNotExist:
             raise serializers.ValidationError({"place": "Place not found"})
         
-        # Check if already favorited
         existing = FavouritePlace.objects.filter(user=self.request.user, place=place).first()
         if existing:
             raise serializers.ValidationError({"place": "Already in favorites"})
@@ -131,8 +128,8 @@ class FavouriteListCreateAPIView(generics.ListCreateAPIView):
 # ---------------------------------------------------
 class FavouriteDetailAPIView(generics.RetrieveDestroyAPIView):
     """
-    GET    /api/favorites/<place_id>/
-    DELETE /api/favorites/<place_id>/
+    GET    /api/favourites/<place_id>/
+    DELETE /api/favourites/<place_id>/
     """
     serializer_class = FavouritePlaceSerializer
     permission_classes = [IsAuthenticated]
@@ -146,78 +143,40 @@ class FavouriteDetailAPIView(generics.RetrieveDestroyAPIView):
 
 
 # ---------------------------------------------------
-# VISITED PLACES: LIST + ADD
-# ---------------------------------------------------
-class VisitedPlaceListCreateAPIView(generics.ListCreateAPIView):
-    """
-    GET  /api/visited/
-    POST /api/visited/  { "place_id": 1 }
-    """
-    serializer_class = VisitedPlaceSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return VisitedPlace.objects.filter(user=self.request.user).select_related("place")
-
-    def create(self, request, *args, **kwargs):
-        place_id = request.data.get("place_id")
-        if not place_id:
-            return Response(
-                {"detail": "place_id is required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        place = get_object_or_404(Place, id=place_id)
-        visited, created = VisitedPlace.objects.get_or_create(
-            user=request.user,
-            place=place,
-        )
-        serializer = self.get_serializer(visited)
-        status_code = status.HTTP_201_CREATED if created else status.HTTP_200_OK
-        return Response(serializer.data, status=status_code)
-
-
-# ---------------------------------------------------
-# SINGLE VISITED: DELETE
-# ---------------------------------------------------
-class VisitedPlaceDetailAPIView(generics.DestroyAPIView):
-    """
-    DELETE /api/visited/<id>/
-    """
-    serializer_class = VisitedPlaceSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return VisitedPlace.objects.filter(user=self.request.user)
-
-
-# ---------------------------------------------------
-# PHOTOS FOR A VISITED PLACE: LIST + UPLOAD
+# PLACE PHOTOS: LIST + UPLOAD
 # ---------------------------------------------------
 class PlacePhotoListCreateAPIView(generics.ListCreateAPIView):
     """
-    GET  /api/visited/<visited_id>/photos/
-    POST /api/visited/<visited_id>/photos/
+    GET  /api/photos/
+    GET  /api/photos/?place_id=1
+    POST /api/photos/  (multipart form with image + caption)
     """
     serializer_class = PlacePhotoSerializer
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
 
     def get_queryset(self):
-        visited_id = self.kwargs["visited_id"]
-        return PlacePhoto.objects.filter(
-            visited__id=visited_id,
-            visited__user=self.request.user
-        )
+        queryset = PlacePhoto.objects.all().select_related('user', 'place')
+        
+        # Filter by place_id if provided
+        place_id = self.request.query_params.get('place_id')
+        if place_id:
+            queryset = queryset.filter(place_id=place_id)
+        
+        return queryset
 
     def perform_create(self, serializer):
-        visited_id = self.kwargs["visited_id"]
-        visited = get_object_or_404(
-            VisitedPlace,
-            id=visited_id,
-            user=self.request.user
-        )
-        serializer.save(visited=visited)
+        place_id = self.request.data.get('place')
+        
+        if not place_id:
+            raise serializers.ValidationError({"place": "place_id is required"})
+        
+        try:
+            place = Place.objects.get(id=place_id)
+        except Place.DoesNotExist:
+            raise serializers.ValidationError({"place": "Place not found"})
+        
+        serializer.save(user=self.request.user, place=place)
 
 
 # ---------------------------------------------------
@@ -232,7 +191,12 @@ class PlacePhotoDetailAPIView(generics.RetrieveDestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return PlacePhoto.objects.filter(visited__user=self.request.user)
+        return PlacePhoto.objects.filter(user=self.request.user)
+
+    def perform_destroy(self, instance):
+        if instance.user != self.request.user:
+            raise serializers.ValidationError("You can only delete your own photos")
+        instance.delete()
 
 
 # ---------------------------------------------------

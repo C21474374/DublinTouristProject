@@ -17,11 +17,7 @@ urlpatterns = [
     path("favourites/", views.FavouriteListCreateAPIView.as_view(), name="favourites-list-create"),
     path("favourites/<int:pk>/", views.FavouriteDetailAPIView.as_view(), name="favourites-detail"),
 
-    # Visited Places
-    path("visited/", views.VisitedPlaceListCreateAPIView.as_view(), name="visited-list-create"),
-    path("visited/<int:pk>/", views.VisitedPlaceDetailAPIView.as_view(), name="visited-detail"),
-
     # Photos
-    path("visited/<int:visited_id>/photos/", views.PlacePhotoListCreateAPIView.as_view(), name="photos-list-create"),
+    path("photos/", views.PlacePhotoListCreateAPIView.as_view(), name="photos-list-create"),
     path("photos/<int:pk>/", views.PlacePhotoDetailAPIView.as_view(), name="photos-detail"),
 ]

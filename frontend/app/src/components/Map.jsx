@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
-import pointInPolygon from 'point-in-polygon';
 import axios from 'axios';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
+import 'leaflet-routing-machine';
 import '../styles/Map.scss';
 import RatingModal from './RatingModal';
 import PlaceDetailsModal from './PlaceDetailsModal';
+import PhotoUploadModal from './PhotoUploadModal';
 import Filters from './Filters';
 import { useAuth } from '../hooks/useAuth';
 
@@ -16,11 +18,16 @@ export default function Map() {
   const mapRef = useRef(null);
   const markersRef = useRef([]);
   const geoJsonLayerRef = useRef(null);
+  const routingControlRef = useRef(null);
+  const userMarkerRef = useRef(null);
+  
   const [places, setPlaces] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [favorites, setFavorites] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [selectedPlaceForPhoto, setSelectedPlaceForPhoto] = useState(null);
 
   const [filters, setFilters] = useState({
     category: '',
@@ -31,6 +38,7 @@ export default function Map() {
     nearbyDistance: 5,
     selectedArea: null,
   });
+  
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [showPlaceModal, setShowPlaceModal] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
@@ -86,10 +94,6 @@ export default function Map() {
       const props = place.properties || place;
       const placeId = props.id || place.id;
 
-      if (places.length > 0 && places[0] === place) {
-        console.log('🔍 PLACE DATA STRUCTURE:', JSON.stringify(place, null, 2));
-      }
-
       if (filters.category && props.category !== parseInt(filters.category)) {
         return false;
       }
@@ -127,7 +131,6 @@ export default function Map() {
         if (distance > filters.nearbyDistance) return false;
       }
 
-      // ===== AREA FILTER WITH POINT IN POLYGON =====
       if (filters.selectedArea) {
         const selectedAreaObj = areas.find(a => a.id === parseInt(filters.selectedArea));
         
@@ -253,6 +256,11 @@ export default function Map() {
   };
 
   const toggleFavorite = async (place) => {
+    if (!token) {
+      alert('Please log in to add favorites');
+      return;
+    }
+
     try {
       const placeId = place.id || place.properties?.id;
       
@@ -278,6 +286,93 @@ export default function Map() {
     } catch (error) {
       console.error('Error toggling favourite:', error);
     }
+  };
+
+  // ===== GET USER LOCATION =====
+  const getUserLocation = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setUserLocation([latitude, longitude]);
+        
+        // Remove old user marker
+        if (userMarkerRef.current) {
+          mapRef.current.removeLayer(userMarkerRef.current);
+        }
+
+        // Add blue marker for user location
+        userMarkerRef.current = L.marker([latitude, longitude], {
+          icon: L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+          })
+        }).addTo(mapRef.current).bindPopup('📍 Your Location');
+        
+        mapRef.current.setView([latitude, longitude], 15);
+        console.log('✅ User location:', latitude, longitude);
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        alert('Please enable location access');
+      }
+    );
+  };
+
+  // ===== SHOW DIRECTIONS =====
+  const showDirections = (place) => {
+    if (!userLocation) {
+      alert('Please enable location access first');
+      getUserLocation();
+      return;
+    }
+
+    const props = place.properties || place;
+    let coords;
+    
+    if (place.geometry?.coordinates?.length === 2) {
+      coords = place.geometry.coordinates;
+    } else if (props.location?.coordinates?.length === 2) {
+      coords = props.location.coordinates;
+    } else if (props.latitude && props.longitude) {
+      coords = [props.longitude, props.latitude];
+    } else if (place.latitude && place.longitude) {
+      coords = [place.longitude, place.latitude];
+    }
+
+    if (!coords) {
+      alert('Cannot find directions for this place');
+      return;
+    }
+
+    // Remove old route
+    if (routingControlRef.current) {
+      mapRef.current.removeControl(routingControlRef.current);
+    }
+
+    // Create new route
+    const newRoutingControl = L.Routing.control({
+      waypoints: [
+        L.latLng(userLocation[0], userLocation[1]),
+        L.latLng(coords[1], coords[0])
+      ],
+      routeWhileDragging: true,
+      show: true,
+      addWaypoints: false,
+      lineOptions: {
+        styles: [{ color: '#28a745', weight: 4, opacity: 0.8 }]
+      }
+    }).addTo(mapRef.current);
+
+    routingControlRef.current = newRoutingControl;
+    console.log('🧭 Directions shown to', props.name);
   };
 
   const handlePlaceCardClick = (place) => {
@@ -361,11 +456,17 @@ export default function Map() {
               </span>
               (${avgRating.toFixed(1)}/5)
             </p>
-            <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
-              <button class="favorite-popup-btn" style="flex: 1; padding: 0.5rem; font-size: 0.85rem;">
+            <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap;">
+              <button class="directions-popup-btn" style="flex: 1; min-width: 70px; padding: 0.5rem; font-size: 0.75rem; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                🧭 Directions
+              </button>
+              <button class="photo-popup-btn" style="flex: 1; min-width: 70px; padding: 0.5rem; font-size: 0.75rem; background: #ff9800; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                📷 Photos
+              </button>
+              <button class="favorite-popup-btn" style="flex: 1; min-width: 60px; padding: 0.5rem; font-size: 0.85rem;">
                 ${isFavStatus ? '❤️' : '🤍'}
               </button>
-              <button class="details-popup-btn" style="flex: 1; padding: 0.5rem; font-size: 0.85rem; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
+              <button class="details-popup-btn" style="flex: 1; min-width: 70px; padding: 0.5rem; font-size: 0.75rem; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer;">
                 View More →
               </button>
             </div>
@@ -378,6 +479,19 @@ export default function Map() {
 
         marker.on('popupopen', () => {
           const popupElement = marker.getPopup().getElement();
+          
+          const dirBtn = popupElement.querySelector('.directions-popup-btn');
+          dirBtn.onclick = (e) => {
+            e.stopPropagation();
+            showDirections(marker.placeData);
+          };
+
+          const photoBtn = popupElement.querySelector('.photo-popup-btn');
+          photoBtn.onclick = (e) => {
+            e.stopPropagation();
+            setSelectedPlaceForPhoto(marker.placeData);
+            setShowPhotoModal(true);
+          };
           
           const favBtn = popupElement.querySelector('.favorite-popup-btn');
           favBtn.onclick = (e) => {
@@ -404,7 +518,6 @@ export default function Map() {
       const response = await fetch('http://localhost:8000/api/areas/');
       const data = await response.json();
       setAreas(Array.isArray(data) ? data : data.results || []);
-      console.log('✅ Areas loaded:', data);
     } catch (error) {
       console.error('Error fetching areas:', error);
     }
@@ -414,7 +527,6 @@ export default function Map() {
     fetchAreas();
   }, []);
 
-  // Display area boundaries on map
   useEffect(() => {
     if (!mapRef.current || !areas || areas.length === 0) return;
 
@@ -422,7 +534,6 @@ export default function Map() {
       mapRef.current.removeLayer(geoJsonLayerRef.current);
     }
 
-    // ===== FILTER BOUNDARIES BASED ON SELECTED AREA =====
     const areasToDisplay = filters.selectedArea 
       ? areas.filter(a => a.id === parseInt(filters.selectedArea))
       : areas;
@@ -461,13 +572,32 @@ export default function Map() {
     }).addTo(mapRef.current);
 
     geoJsonLayerRef.current = geoJsonLayer;
-    console.log('🗺️ Area boundaries rendered:', areasToDisplay.length);
   }, [areas, filters.selectedArea, mapRef.current]);
 
   return (
     <>
       <button className="mobile-filters-toggle" onClick={() => setShowFilters(!showFilters)}>
         {showFilters ? '✕ Close' : '☰ Filters'}
+      </button>
+
+      <button 
+        onClick={getUserLocation}
+        style={{
+          position: 'absolute',
+          bottom: '80px',
+          right: '20px',
+          zIndex: 999,
+          padding: '10px 15px',
+          backgroundColor: '#667eea',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          fontSize: '14px',
+          fontWeight: 'bold'
+        }}
+      >
+        📍 My Location
       </button>
 
       <div className="map-wrapper">
@@ -485,24 +615,7 @@ export default function Map() {
             onPlaceCardClick={handlePlaceCardClick}
             onToggleFavorite={toggleFavorite}
             isFavorite={isFavorite}
-            onGetLocation={() => {
-              if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                  (position) => {
-                    const { latitude, longitude } = position.coords;
-                    console.log('📍 User location:', latitude, longitude);
-                    setUserLocation([latitude, longitude]);
-                  },
-                  (error) => {
-                    console.error('Geolocation error:', error);
-                    alert('Please enable location access to use nearby filter');
-                    setFilters(prev => ({ ...prev, nearbyOnly: false }));
-                  }
-                );
-              } else {
-                alert('Geolocation is not supported by your browser');
-              }
-            }}
+            onGetLocation={getUserLocation}
           />
         </div>
 
@@ -512,8 +625,20 @@ export default function Map() {
           <PlaceDetailsModal
             place={selectedPlace}
             onClose={() => setShowPlaceModal(false)}
-            onRatingAdded={() => {
-              fetchPlaces();
+            onRatingAdded={() => fetchPlaces()}
+          />
+        )}
+
+        {showPhotoModal && selectedPlaceForPhoto && (
+          <PhotoUploadModal
+            place={selectedPlaceForPhoto}
+            token={token}
+            onClose={() => {
+              setShowPhotoModal(false);
+              setSelectedPlaceForPhoto(null);
+            }}
+            onUploadSuccess={() => {
+              console.log('Photo uploaded successfully');
             }}
           />
         )}

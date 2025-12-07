@@ -2,21 +2,11 @@
 
 from rest_framework import serializers
 from django.contrib.auth.models import User
-
-from .models import (
-    TouristProfile,
-    FavouritePlace,
-    VisitedPlace,
-    PlacePhoto
-)
-
+from .models import TouristProfile, FavouritePlace, PlacePhoto
 from places.serializers import PlaceSerializer, PlaceDetailSerializer
 from rest_framework.authtoken.models import Token
 
 
-# ----------------------------
-# TOURIST PROFILE SERIALIZER
-# ----------------------------
 class TouristProfileSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()
 
@@ -25,45 +15,31 @@ class TouristProfileSerializer(serializers.ModelSerializer):
         fields = ["user", "points"]
 
 
-# ----------------------------
-# FAVOURITE PLACE SERIALIZER
-# ----------------------------
 class FavouritePlaceSerializer(serializers.ModelSerializer):
     place = PlaceDetailSerializer(read_only=True)
 
     class Meta:
         model = FavouritePlace
-        fields = ["id", "place"]
+        fields = ["id", "place", "added_at"]
 
 
-# ----------------------------
-# VISITED PLACE SERIALIZER
-# ----------------------------
-class VisitedPlaceSerializer(serializers.ModelSerializer):
-    place = PlaceSerializer(read_only=True)
-
-    class Meta:
-        model = VisitedPlace
-        fields = ["id", "place", "visited_at"]
-
-
-# ----------------------------
-# PLACE PHOTO SERIALIZER
-# ----------------------------
 class PlacePhotoSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
+    place_name = serializers.CharField(source='place.name', read_only=True)
+
     class Meta:
         model = PlacePhoto
         fields = [
             "id",
+            "user",
+            "place",
+            "place_name",
             "image",
             "caption",
             "uploaded_at"
         ]
 
 
-# ----------------------------
-# USER REGISTRATION SERIALIZER
-# ----------------------------
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
     password2 = serializers.CharField(write_only=True, required=True)
@@ -84,18 +60,12 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         
-        # Create token
         Token.objects.create(user=user)
-        
-        # Create profile
         TouristProfile.objects.create(user=user)
         
         return user
 
 
-# ----------------------------
-# USER LOGIN SERIALIZER
-# ----------------------------
 class UserLoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
@@ -109,9 +79,6 @@ class UserLoginSerializer(serializers.Serializer):
         return data
 
 
-# ----------------------------
-# USER SERIALIZER
-# ----------------------------
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
