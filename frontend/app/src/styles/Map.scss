@@ -353,7 +353,7 @@
   background: var(--surface) !important;
   color: var(--text) !important;
   border-radius: 8px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  
   border: 2px solid var(--primary) !important;
 
   .leaflet-routing-header {
@@ -365,7 +365,7 @@
   }
 
   .leaflet-routing-alt {
-    background: var(--surface) !important;
+    background: var(--background) !important;
     color: var(--text) !important;
     border-top: 1px solid var(--border) !important;
     padding: 0.75rem !important;
@@ -380,7 +380,7 @@
     }
 
     .leaflet-routing-summary {
-      color: var(--text-secondary, #666) !important;
+      color: var(--text) !important;
       font-size: 0.9rem !important;
     }
   }
@@ -392,13 +392,13 @@
   }
 
   .leaflet-routing-time {
-    color: var(--text-secondary, #666) !important;
+    color: var(--text) !important;
     font-size: 0.9rem !important;
   }
 
   /* Instruction steps styling */
   .leaflet-routing-instruction {
-    background: var(--surface) !important;
+    background: var(--background) !important;
     color: var(--text) !important;
     border-left: 4px solid var(--primary) !important;
     padding: 0.75rem !important;
@@ -406,13 +406,13 @@
     border-radius: 4px !important;
 
     &:hover {
-      background: var(--background) !important;
+      background: var(--primary) !important;
       border-left-color: var(--primary) !important;
     }
 
     .leaflet-routing-instruction-icon {
-      background-color: var(--primary) !important;
-      color: white !important;
+      background-color: var(--text) !important;
+      color: var(--text) !important;
     }
 
     .leaflet-routing-instruction-text {
@@ -420,7 +420,7 @@
     }
 
     .leaflet-routing-instruction-distance {
-      color: var(--text-secondary, #666) !important;
+      color: var(--text) !important;
       font-size: 0.85rem !important;
     }
   }
@@ -439,7 +439,7 @@
     &:hover {
       opacity: 0.9 !important;
       transform: translateY(-2px) !important;
-      box-shadow: 0 4px 8px rgba(0, 167, 225, 0.3) !important;
+      
     }
 
     &:active {
@@ -450,7 +450,7 @@
   /* Close button styling */
   .leaflet-routing-close-button {
     background: var(--error, #dc3545) !important;
-    color: white !important;
+    color: var(--text) !important;
     border-radius: 50% !important;
     width: 32px !important;
     height: 32px !important;

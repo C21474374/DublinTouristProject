@@ -44,7 +44,7 @@ export default function PhotoUploadModal({ place, token, onClose, onUploadSucces
         formData.append('caption', caption);
         formData.append('place', placeId);
 
-        console.log('📤 Uploading photo for place:', placeId);
+        console.log('Uploading photo for place:', placeId);
         console.log('Token:', token ? 'Present' : 'Missing');
 
         const response = await axios.post(`${API_BASE}/photos/`, formData, {
@@ -54,16 +54,16 @@ export default function PhotoUploadModal({ place, token, onClose, onUploadSucces
           }
         });
 
-        console.log('✅ Photo uploaded:', response.data);
+        console.log('Photo uploaded:', response.data);
       }
 
       setSelectedFiles([]);
       setCaption('');
-      alert('✅ Photos uploaded successfully!');
+      alert('Photos uploaded successfully!');
       onUploadSuccess();
       setTimeout(onClose, 1000);
     } catch (err) {
-      console.error('❌ Upload error:', err);
+      console.error('Upload error:', err);
       console.error('Error response:', err.response?.data);
       console.error('Error status:', err.response?.status);
       
@@ -81,12 +81,12 @@ export default function PhotoUploadModal({ place, token, onClose, onUploadSucces
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>📷 Upload Photos</h2>
+          <h2>Upload Photos</h2>
           <button className="close-btn" onClick={onClose}>✕</button>
         </div>
 
         <div className="modal-body">
-          <p style={{ fontSize: '0.9rem', color: '#666' }}>
+          <p style={{ fontSize: '0.9rem', color: 'var(--text)' }}>
             <strong>Place:</strong> {props.name}
           </p>
 
@@ -100,7 +100,7 @@ export default function PhotoUploadModal({ place, token, onClose, onUploadSucces
               onChange={handleFileSelect}
               disabled={uploading}
             />
-            <p style={{ fontSize: '0.8rem', color: '#999', marginTop: '0.5rem' }}>
+            <p style={{ fontSize: '0.8rem', color: 'var(--background)', marginTop: '0.5rem' }}>
               {selectedFiles.length} file(s) selected
             </p>
           </div>
@@ -111,6 +111,7 @@ export default function PhotoUploadModal({ place, token, onClose, onUploadSucces
               id="caption"
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
+              style={{ color: 'var(--text)' }}
               placeholder="Add a caption for your photos..."
               disabled={uploading}
               rows="3"
@@ -146,7 +147,7 @@ export default function PhotoUploadModal({ place, token, onClose, onUploadSucces
             onClick={handleUpload}
             disabled={uploading || selectedFiles.length === 0}
           >
-            {uploading ? '⏳ Uploading...' : '✓ Upload Photos'}
+            {uploading ? 'Uploading...' : 'Upload Photos'}
           </button>
         </div>
       </div>

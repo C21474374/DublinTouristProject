@@ -69,22 +69,22 @@ export default function PlaceDetailsModal({ place, onClose, onRatingAdded }) {
 
             <div className="place-info">
               <div className="info-item">
-                <span className="label">💰 Price:</span>
+                <span className="label">Price:</span>
                 <span className="value">€{placeDetails.price}</span>
               </div>
               <div className="info-item">
-                <span className="label">⏱️ Time:</span>
+                <span className="label">Time:</span>
                 <span className="value">{placeDetails.time_required} min</span>
               </div>
               <div className="info-item">
-                <span className="label">👥 Popularity:</span>
+                <span className="label">Popularity:</span>
                 <span className="value">{placeDetails.popularity} visits</span>
               </div>
             </div>
 
             <div className="rating-section">
               <div className="rating-header">
-                <h2>⭐ Ratings</h2>
+                <h2>Ratings</h2>
                 <div className="rating-stats">
                   <span className="stars">
                     {'★'.repeat(Math.round(avgRating))}{'☆'.repeat(5 - Math.round(avgRating))}
@@ -105,7 +105,7 @@ export default function PlaceDetailsModal({ place, onClose, onRatingAdded }) {
                         className="edit-btn"
                         onClick={() => setShowRatingModal(true)}
                       >
-                        ✏️ Edit
+                        Edit
                       </button>
                     </div>
                     {placeDetails.user_rating.comment && (
@@ -118,7 +118,7 @@ export default function PlaceDetailsModal({ place, onClose, onRatingAdded }) {
                   className="add-rating-btn"
                   onClick={() => setShowRatingModal(true)}
                 >
-                  ⭐ Add Your Rating
+                  Add Your Rating
                 </button>
               )}
 
@@ -144,8 +144,8 @@ export default function PlaceDetailsModal({ place, onClose, onRatingAdded }) {
             </div>
 
             <div className="modal-tags">
-              {placeDetails.child_friendly && <span className="tag">👶 Child Friendly</span>}
-              {placeDetails.wheelchair_access && <span className="tag">♿ Wheelchair Access</span>}
+              {placeDetails.child_friendly && <span className="tag">Child Friendly</span>}
+              {placeDetails.wheelchair_access && <span className="tag">Wheelchair Access</span>}
             </div>
           </div>
         </div>

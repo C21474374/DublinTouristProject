@@ -12,13 +12,14 @@
   padding: 1rem;
 
   .rating-modal {
-    background: white;
+    background: var(--surface);
     border-radius: 12px;
     padding: 2rem;
     max-width: 400px;
     width: 100%;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    
     animation: slideUp 0.3s ease;
+    border: 2px solid var(--primary);
 
     .modal-header {
       display: flex;
@@ -29,7 +30,7 @@
       h2 {
         margin: 0;
         font-size: 1.3rem;
-        color: #333;
+        color: var(--text);
       }
 
       .close-btn {
@@ -37,10 +38,13 @@
         border: none;
         font-size: 1.5rem;
         cursor: pointer;
-        color: #999;
+        color: var(--text);
+        opacity: 0.6;
+        transition: all 0.2s;
 
         &:hover {
-          color: #333;
+          color: var(--text);
+          opacity: 1;
         }
       }
     }
@@ -55,7 +59,7 @@
 
         p {
           margin: 0 0 0.5rem 0;
-          color: #666;
+          color: var(--text);
           font-weight: 600;
         }
 
@@ -70,7 +74,7 @@
             border: none;
             font-size: 2.5rem;
             cursor: pointer;
-            color: #ddd;
+            color: var(--border);
             transition: color 0.2s;
 
             &.active {
@@ -86,7 +90,7 @@
         .stars-text {
           margin: 0;
           font-size: 0.9rem;
-          color: #667eea;
+          color: var(--text);
           font-weight: 600;
         }
       }
@@ -98,32 +102,36 @@
 
         label {
           font-weight: 600;
-          color: #333;
+          color: var(--text);
           font-size: 0.9rem;
         }
 
         textarea {
           padding: 0.75rem;
-          border: 1px solid #ddd;
+          
           border-radius: 6px;
           font-family: inherit;
           font-size: 0.95rem;
           resize: vertical;
+          background: var(--background);
+          color: var(--text);
+          transition: all 0.2s;
 
           &:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: var(--primary);
+            
           }
         }
       }
 
       .error-message {
-        background: #fee;
-        color: #c33;
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
         padding: 0.75rem;
         border-radius: 6px;
         font-size: 0.9rem;
+        border-left: 4px solid #dc3545;
       }
 
       .modal-actions {
@@ -146,22 +154,22 @@
         }
 
         .submit-btn {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
+          background: var(--background);
+          color: var(--text);
 
           &:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            background: var(--primary);
           }
         }
 
         .delete-btn {
-          background: #fee;
-          color: #e74c3c;
-          border: 1px solid #fcc;
+          background: rgba(220, 53, 69, 0.1);
+          color: #dc3545;
+          border: 2px solid #dc3545;
 
           &:hover:not(:disabled) {
-            background: #fdd;
+            background: rgba(220, 53, 69, 0.2);
           }
         }
       }
