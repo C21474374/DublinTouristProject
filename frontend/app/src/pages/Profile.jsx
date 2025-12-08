@@ -97,7 +97,7 @@ export default function Profile() {
 
   const updateProfile = async () => {
     if (!formData.first_name.trim() || !formData.last_name.trim()) {
-      setMessage('❌ First and last name are required');
+      setMessage('First and last name are required');
       return;
     }
 
@@ -108,11 +108,11 @@ export default function Profile() {
       await axios.patch(`${API_BASE}/users/${user.id}/`, formData, {
         headers: { Authorization: `Token ${token}` }
       });
-      setMessage('✅ Profile updated successfully!');
+      setMessage('Profile updated successfully!');
       setIsEditing(false);
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      setMessage(`❌ ${error.response?.data?.detail || 'Update failed'}`);
+      setMessage(`${error.response?.data?.detail || 'Update failed'}`);
     } finally {
       setLoading(false);
     }
@@ -120,17 +120,17 @@ export default function Profile() {
 
   const updatePassword = async () => {
     if (!passwords.old_password || !passwords.new_password || !passwords.new_password2) {
-      setMessage('❌ All password fields are required');
+      setMessage('All password fields are required');
       return;
     }
 
     if (passwords.new_password !== passwords.new_password2) {
-      setMessage('❌ New passwords do not match');
+      setMessage('New passwords do not match');
       return;
     }
 
     if (passwords.new_password.length < 8) {
-      setMessage('❌ Password must be at least 8 characters');
+      setMessage('Password must be at least 8 characters');
       return;
     }
 
@@ -141,12 +141,12 @@ export default function Profile() {
       await axios.post(`${API_BASE}/change-password/`, passwords, {
         headers: { Authorization: `Token ${token}` }
       });
-      setMessage('✅ Password changed successfully!');
+      setMessage('Password changed successfully!');
       setPasswords({ old_password: '', new_password: '', new_password2: '' });
       setShowPasswordForm(false);
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      setMessage(`❌ ${error.response?.data?.detail || error.response?.data?.old_password?.[0] || 'Password change failed'}`);
+      setMessage(`${error.response?.data?.detail || error.response?.data?.old_password?.[0] || 'Password change failed'}`);
     } finally {
       setLoading(false);
     }
@@ -172,7 +172,7 @@ export default function Profile() {
 
           {/* Message Alert */}
           {message && (
-            <div className={`alert ${message.includes('✅') ? 'success' : 'error'}`}>
+            <div className={`alert ${message.includes('success') ? 'success' : 'error'}`}>
               {message}
             </div>
           )}
@@ -206,7 +206,7 @@ export default function Profile() {
           {/* Edit Profile Form */}
           {isEditing ? (
             <div className="profile-form">
-              <h3>✏️ Edit Profile</h3>
+              <h3>Edit Profile</h3>
               
               <div className="form-group">
                 <label>First Name:</label>
@@ -254,7 +254,7 @@ export default function Profile() {
                   onClick={updateProfile}
                   disabled={loading}
                 >
-                  {loading ? '💾 Saving...' : '💾 Save'}
+                  {loading ? 'Saving...' : 'Save'}
                 </button>
               </div>
             </div>
@@ -281,7 +281,7 @@ export default function Profile() {
                 className="btn-edit"
                 onClick={() => setIsEditing(true)}
               >
-                ✏️ Edit Profile
+                Edit Profile
               </button>
             </>
           )}
@@ -289,7 +289,7 @@ export default function Profile() {
           {/* Password Change Form */}
           {showPasswordForm ? (
             <div className="password-form">
-              <h3>🔐 Change Password</h3>
+              <h3>Change Password</h3>
 
               <div className="form-group">
                 <label>Current Password:</label>
@@ -337,7 +337,7 @@ export default function Profile() {
                   onClick={updatePassword}
                   disabled={loading}
                 >
-                  {loading ? '⏳ Updating...' : '🔐 Update Password'}
+                  {loading ? 'Updating...' : 'Update Password'}
                 </button>
               </div>
             </div>
@@ -346,13 +346,13 @@ export default function Profile() {
               className="btn-password"
               onClick={() => setShowPasswordForm(true)}
             >
-              🔐 Change Password
+              Change Password
             </button>
           )}
 
           {/* Logout Button */}
           <button className="logout-btn" onClick={handleLogout}>
-            🚪 Logout
+            Logout
           </button>
         </div>
       </div>

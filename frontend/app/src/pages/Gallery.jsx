@@ -91,7 +91,7 @@ export default function Gallery() {
   return (
     <div className="gallery-container">
       <div className="gallery-header">
-        <h1>📷 Gallery</h1>
+        <h1>Gallery</h1>
         <p>View and manage photos from your favorite places</p>
       </div>
 
@@ -101,7 +101,7 @@ export default function Gallery() {
           <div className="search-box">
             <input
               type="text"
-              placeholder="🔍 Search places..."
+              placeholder="Search places..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -115,7 +115,7 @@ export default function Gallery() {
                 fetchAllPhotos();
               }}
             >
-              <span>🌍 All Places</span>
+              <span>All Places</span>
               <span className="photo-count">
                 {photos.length}
               </span>
@@ -158,20 +158,20 @@ export default function Gallery() {
                 </div>
               ) : (
                 <div className="place-rating">
-                  <span style={{ color: '#999' }}>No ratings yet</span>
+                  <span style={{ color: 'var(--text)' }}>No ratings yet</span>
                 </div>
               )}
             </div>
           )}
 
           {loading ? (
-            <div className="loading">⏳ Loading photos...</div>
+            <div className="loading">Loading photos...</div>
           ) : error ? (
             <div className="error">❌ {error}</div>
           ) : photos.length === 0 ? (
             <div className="empty-state">
-              <p>📸 No photos yet</p>
-              <p style={{ fontSize: '0.9rem', color: '#999' }}>
+              <p>No photos yet</p>
+              <p style={{ fontSize: '0.9rem', color: 'var(--text)' }}>
                 Upload photos from the map to see them here
               </p>
             </div>
@@ -225,10 +225,10 @@ export default function Gallery() {
                 <p className="caption">{selectedPhoto.caption}</p>
               )}
               <p className="meta">
-                📸 by <strong>{selectedPhoto.user}</strong>
+                Photo by: <strong>{selectedPhoto.user}</strong>
               </p>
               <p className="date">
-                📅 {new Date(selectedPhoto.uploaded_at).toLocaleString()}
+                Date/Time: {new Date(selectedPhoto.uploaded_at).toLocaleString()}
               </p>
 
               {token && (
@@ -236,7 +236,7 @@ export default function Gallery() {
                   className="delete-btn"
                   onClick={() => deletePhoto(selectedPhoto.id)}
                 >
-                  🗑️ Delete Photo
+                  Delete Photo
                 </button>
               )}
             </div>

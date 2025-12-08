@@ -51,7 +51,7 @@ export default function Favorites() {
     return (
       <div className="favorites-page">
         <div className="empty-state">
-          <h2>❤️ No Favourites Yet</h2>
+          <h2>No Favourites Yet ❤️</h2>
           <p>Add places to your favourites on the map to see them here!</p>
         </div>
       </div>
@@ -61,7 +61,7 @@ export default function Favorites() {
   return (
     <div className="favorites-page">
       <div className="favorites-header">
-        <h1>❤️ My Favourites</h1>
+        <h1>My Favourites ❤️</h1>
         <p>{favorites.length} place{favorites.length !== 1 ? 's' : ''} saved</p>
       </div>
 
@@ -92,7 +92,7 @@ export default function Favorites() {
 
               <div className="card-stats">
                 <div className="stat-item">
-                  <span className="stat-icon">⭐</span>
+                  
                   <div className="stat-content">
                     <span className="stat-label">Rating</span>
                     <span className="stat-value">
@@ -111,7 +111,7 @@ export default function Favorites() {
                 </div>
 
                 <div className="stat-item">
-                  <span className="stat-icon">💰</span>
+                  
                   <div className="stat-content">
                     <span className="stat-label">Price</span>
                     <span className="stat-value">€{props.price || '0'}</span>
@@ -119,7 +119,7 @@ export default function Favorites() {
                 </div>
 
                 <div className="stat-item">
-                  <span className="stat-icon">⏱️</span>
+                 
                   <div className="stat-content">
                     <span className="stat-label">Duration</span>
                     <span className="stat-value">{props.time_required || '0'} min</span>
@@ -127,7 +127,7 @@ export default function Favorites() {
                 </div>
 
                 <div className="stat-item">
-                  <span className="stat-icon">👥</span>
+                  
                   <div className="stat-content">
                     <span className="stat-label">Popularity</span>
                     <span className="stat-value">{props.popularity || '0'} visits</span>
@@ -137,10 +137,10 @@ export default function Favorites() {
 
               <div className="card-amenities">
                 {props.child_friendly && (
-                  <span className="amenity-tag child-friendly">👶 Child Friendly</span>
+                  <span className="amenity-tag child-friendly">Child Friendly</span>
                 )}
                 {props.wheelchair_access && (
-                  <span className="amenity-tag wheelchair">♿ Wheelchair Access</span>
+                  <span className="amenity-tag wheelchair">Wheelchair Access</span>
                 )}
               </div>
 
@@ -159,7 +159,7 @@ export default function Favorites() {
                   navigate('/');
                 }}
               >
-                📍 View on Map →
+                View on Map
               </button>
             </div>
           );

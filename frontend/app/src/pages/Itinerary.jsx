@@ -198,13 +198,13 @@ const routeCoordinates = mode === 'view'
         {mode === 'create' ? (
           <>
             <div className="panel-header">
-              <h2>🛣️ Create New Itinerary</h2>
+              <h2>Create New Itinerary</h2>
               <button className="view-btn" onClick={() => {
                 setMode('view');
                 setStops([]);  // Clear current route
                 setNewItineraryName('');
               }}>
-                📋 View Saved
+                View Saved
               </button>
             </div>
 
@@ -220,7 +220,7 @@ const routeCoordinates = mode === 'view'
 
             {/* Add Places Section */}
             <div className="add-places-section">
-              <h3>📍 Add Places</h3>
+              <h3>Add Places</h3>
               <div className="places-search">
                 {places.slice(0, 10).map((place) => {
                   const props = place.properties || place;
@@ -231,7 +231,7 @@ const routeCoordinates = mode === 'view'
                       <div className="place-info">
                         <h4>{props.name}</h4>
                         <p className="place-details">
-                          💰 €{props.price} • ⏱️ {props.time_required}min
+                          €{props.price} •  {props.time_required}min
                         </p>
                       </div>
                       <button
@@ -249,7 +249,7 @@ const routeCoordinates = mode === 'view'
 
             {/* Current Route */}
             <div className="route-section">
-              <h3>📌 Your Route ({stops.length} stops)</h3>
+              <h3>Your Route ({stops.length} stops)</h3>
               
               {stops.length === 0 ? (
                 <p className="empty-msg">Add places to create your route</p>
@@ -277,7 +277,7 @@ const routeCoordinates = mode === 'view'
                           </button>
                         </div>
                         <p className="stop-meta">
-                          💰 €{props.price} • ⏱️ {props.time_required}min
+                          €{props.price} • {props.time_required}min
                         </p>
                       </li>
                     );
@@ -288,11 +288,11 @@ const routeCoordinates = mode === 'view'
               {stops.length > 0 && (
                 <div className="totals">
                   <div className="total-item">
-                    <span>💰 Total Cost:</span>
+                    <span>Total Cost:</span>
                     <strong>€{totalCost}</strong>
                   </div>
                   <div className="total-item">
-                    <span>⏱️ Total Time:</span>
+                    <span>Total Time:</span>
                     <strong>{totalTime} min</strong>
                   </div>
                 </div>
@@ -303,20 +303,20 @@ const routeCoordinates = mode === 'view'
                 onClick={saveItinerary}
                 disabled={stops.length === 0 || loading}
               >
-                {loading ? 'Saving...' : '💾 Save Itinerary'}
+                {loading ? 'Saving...' : 'Save Itinerary'}
               </button>
             </div>
           </>
         ) : (
           <>
             <div className="panel-header">
-              <h2>📋 Saved Itineraries</h2>
+              <h2>Saved Itineraries</h2>
             <button className="create-btn" onClick={() => {
             setMode('create');
             setSelectedItinerary(null);  // Clear selected itinerary
             setStops([]);  // Clear stops
             }}>
-            ➕ Create New
+            Create New
             </button>
             </div>
 
@@ -336,7 +336,7 @@ const routeCoordinates = mode === 'view'
                       </button>
                     </div>
                     <p className="card-stats">
-                      📍 {itinerary.stops?.length || 0} stops • 💰 €{itinerary.total_cost} • ⏱️ {itinerary.total_time_minutes} min
+                      {itinerary.stops?.length || 0} stops • €{itinerary.total_cost} • {itinerary.total_time_minutes} min
                     </p>
                     <button
                       className="view-itinerary-btn"
@@ -362,7 +362,7 @@ const routeCoordinates = mode === 'view'
                           <h4>{props.name}</h4>
                         </div>
                         <p className="stop-meta">
-                          💰 €{props.price} • ⏱️ {props.time_required}min
+                         €{props.price} •  {props.time_required}min
                         </p>
                       </li>
                     );
@@ -399,8 +399,8 @@ const routeCoordinates = mode === 'view'
                 <Popup>
                   <div>
                     <h4>Stop {idx + 1}: {props.name}</h4>
-                    <p>💰 €{props.price}</p>
-                    <p>⏱️ {props.time_required} min</p>
+                    <p>€{props.price}</p>
+                    <p>{props.time_required} min</p>
                   </div>
                 </Popup>
               </Marker>
