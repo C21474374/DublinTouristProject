@@ -1,7 +1,7 @@
 # Stage 1: Build frontend
 FROM node:18-alpine AS frontend-builder
 
-WORKDIR /app/frontend/app
+WORKDIR /build
 
 COPY frontend/app/package*.json ./
 
@@ -11,7 +11,7 @@ COPY frontend/app .
 
 RUN npm run build
 
-# Stage 2: Python backend - CHANGE TO 3.12
+# Stage 2: Python backend
 FROM python:3.12-slim
 
 WORKDIR /app
@@ -25,7 +25,6 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Set GDAL environment
 ENV GDAL_CONFIG=/usr/bin/gdal-config
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -37,12 +36,8 @@ RUN pip install --no-cache-dir -r requirements.txt gunicorn
 # Copy backend code
 COPY backend .
 
-# Copy frontend build to Django static folder
-COPY --from=frontend-builder /app/frontend/app/dist ./frontend_dist
-
-# Create non-root user
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
-USER appuser
+# Copy frontend dist from builder
+COPY --from=frontend-builder /build/dist ./staticfiles/frontend
 
 # Collect static files
 RUN python manage.py collectstatic --noinput --clear || true
