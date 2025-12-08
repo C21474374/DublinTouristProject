@@ -11,8 +11,8 @@ COPY frontend/app .
 
 RUN npm run build
 
-# Stage 2: Python backend
-FROM python:3.11-slim
+# Stage 2: Python backend - CHANGE TO 3.12
+FROM python:3.12-slim
 
 WORKDIR /app
 

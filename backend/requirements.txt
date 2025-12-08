@@ -11,7 +11,7 @@ django-cors-headers==4.3.1
 django-filter==23.4
 django-geojson==4.2.0
 djangorestframework==3.14.0
-djangorestframework-gis==0.21
+djangorestframework-gis==1.2.0
 GDAL==3.11.0
 geojson==3.2.0
 gunicorn==21.2.0
