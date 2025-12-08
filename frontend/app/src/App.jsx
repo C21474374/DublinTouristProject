@@ -3,9 +3,11 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { FaBars } from 'react-icons/fa';
 
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { useAuth } from './hooks/useAuth';
 import Sidebar from './components/Sidebar.jsx';
-// import Footer from './components/Footer.jsx';
+import InstallPrompt from './components/InstallPrompt';
+import OfflineIndicator from './components/OfflineIndicator';
 
 import Home from './pages/Home.jsx';
 import Login from './pages/Login.jsx';
@@ -17,7 +19,6 @@ import Profile from './pages/Profile.jsx';
 import NotFound from './pages/NotFound.jsx';
 
 import './styles.scss';
-import { ThemeProvider } from './context/ThemeContext';
 
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -34,11 +35,13 @@ function AppContent() {
   // Show auth pages without sidebar
   if (!token) {
     return (
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="*" element={<Navigate to="/login" />} />
-      </Routes>
+      <div className="auth-container">
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="*" element={<Navigate to="/login" />} />
+        </Routes>
+      </div>
     );
   }
 
@@ -68,8 +71,6 @@ function AppContent() {
           <Route path="/not-found" element={<NotFound />} />
           <Route path="*" element={<Navigate to="/not-found" />} />
         </Routes>
-
-        {/* <Footer /> */}
       </main>
     </div>
   );
@@ -79,6 +80,8 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
+        <OfflineIndicator />
+        <InstallPrompt />
         <AppContent />
       </AuthProvider>
     </ThemeProvider>

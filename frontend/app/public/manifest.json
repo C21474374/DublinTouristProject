@@ -1,0 +1,58 @@
+{
+  "name": "Dublin Guide - Tourist Exploration App",
+  "short_name": "Dublin Guide",
+  "description": "Explore Dublin with location-based recommendations, routes, and itineraries",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#00a7e1",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%2300a7e1' width='192' height='192'/><text x='96' y='110' font-size='90' font-weight='bold' fill='white' text-anchor='middle' font-family='Arial'>DG</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%2300a7e1' width='512' height='512'/><text x='256' y='280' font-size='240' font-weight='bold' fill='white' text-anchor='middle' font-family='Arial'>DG</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><defs><linearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' style='stop-color:%2300a7e1;stop-opacity:1' /><stop offset='100%25' style='stop-color:%23005a8b;stop-opacity:1' /></linearGradient></defs><rect fill='url(%23grad)' width='540' height='720'/><text x='270' y='360' font-size='60' fill='white' text-anchor='middle' font-family='Arial' font-weight='bold'>Dublin Guide</text></svg>",
+      "sizes": "540x720",
+      "type": "image/svg+xml",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Map Explorer",
+      "short_name": "Map",
+      "description": "View the interactive map of Dublin",
+      "url": "/?page=map",
+      "icons": []
+    },
+    {
+      "name": "My Favorites",
+      "short_name": "Favorites",
+      "description": "View your saved favorite places",
+      "url": "/?page=favorites",
+      "icons": []
+    },
+    {
+      "name": "Route Planner",
+      "short_name": "Routes",
+      "description": "Plan your Dublin itinerary",
+      "url": "/?page=itinerary",
+      "icons": []
+    }
+  ],
+  "categories": ["travel", "navigation", "lifestyle"]
+}
