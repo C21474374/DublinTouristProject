@@ -36,13 +36,12 @@ RUN pip install --no-cache-dir -r requirements.txt gunicorn
 # Copy backend code
 COPY backend .
 
-# Copy frontend dist to static folder
-COPY --from=frontend-builder /build/dist/index.html ./templates/index.html
-COPY --from=frontend-builder /build/dist/assets ./staticfiles/assets
+# Copy frontend dist directly to static folder (NOT staticfiles)
+RUN mkdir -p ./static && \
+    cp -r /build/dist/assets ./static/ || true && \
+    cp /build/dist/index.html ./templates/index.html || true
 
-# Collect static files
-RUN python manage.py collectstatic --noinput --clear || true
-
+# Don't run collectstatic - just expose static files
 EXPOSE 8000
 
 CMD ["gunicorn", "core.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "4", "--timeout", "120"]

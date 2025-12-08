@@ -12,12 +12,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load from .env - with defaults for local development
 DEBUG = config('DEBUG', default=True, cast=bool)
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-dev-key-change-in-production')
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,dublin-guide.onrender.com').split(',')
 
 # CORS
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:3000,http://localhost:5173'
+    default='http://localhost:3000,http://localhost:5173,https://dublin-guide.onrender.com'
 ).split(',')
 
 # Application definition
@@ -74,12 +74,9 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 # Database Configuration
-# Priority: DATABASE_URL (production) → Local Docker → Local Postgres
-
 DATABASE_URL = config('DATABASE_URL', default=None)
 
 if DATABASE_URL and DATABASE_URL.strip():
-    # Production: Using environment variable (Neon on Render)
     DATABASES = {
         'default': dj_database_url.config(
             default=DATABASE_URL,
@@ -88,7 +85,6 @@ if DATABASE_URL and DATABASE_URL.strip():
         )
     }
 else:
-    # Development: Using Docker or local Postgres
     DATABASES = {
         'default': {
             'ENGINE': 'django.contrib.gis.db.backends.postgis',
@@ -122,10 +118,10 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# Static files
+# Static files - FIXED
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = []
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]  # Serve frontend assets from here
 
 # Media files
 MEDIA_URL = '/media/'
@@ -155,19 +151,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # CORS Settings
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
-else:
-    CORS_ALLOWED_ORIGINS = config(
-        'CORS_ALLOWED_ORIGINS',
-        default='https://dublin-guide.onrender.com'
-    ).split(',')
-
-# GDAL Configuration (Windows local only - comment out for production)
-if os.name == 'nt':  # Windows
-    try:
-        GDAL_LIBRARY_PATH = r"C:\Users\demet\miniconda3\envs\tourist\Library\bin\gdal.dll"
-        GEOS_LIBRARY_PATH = r"C:\Users\demet\miniconda3\envs\tourist\Library\bin\geos_c.dll"
-    except:
-        pass
 
 # Production Settings
 if not DEBUG:
