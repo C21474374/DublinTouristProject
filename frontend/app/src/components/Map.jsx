@@ -419,6 +419,34 @@ export default function Map() {
     }
   };
 
+  // Update the getCategoryIcon function to use actual categories from backend
+  const getCategoryIcon = (categoryId, categoriesData = categories) => {
+    const categoryMap = {
+      'Attraction': '🎡',
+      'Museum': '🏛️',
+      'Restaurant': '🍽️',
+      'Park': '🌳',
+      'Nightlife': '🎉',
+      'Historical': '📖',
+    };
+
+    // Find category by ID from the fetched categories
+    const category = categoriesData.find(cat => cat.id === categoryId);
+    const categoryName = category?.name || 'Place';
+    
+    return categoryMap[categoryName] || '📍';
+  };
+
+  const createCustomIcon = (emoji) => {
+    return L.divIcon({
+      html: `<div class="custom-marker">${emoji}</div>`,
+      className: 'custom-icon-marker',
+      iconSize: [40, 40],
+      iconAnchor: [20, 40],
+      popupAnchor: [0, -40],
+    });
+  };
+
   const renderMarkers = () => {
     console.log('🎨 Rendering markers. Count:', filteredPlaces.length);
     
@@ -434,6 +462,7 @@ export default function Map() {
     filteredPlaces.forEach((place) => {
       const props = place.properties || place;
       const placeId = props.id || place.id;
+      const categoryId = props.category;
       
       let coords;
       if (place.geometry?.coordinates?.length === 2) {
@@ -453,7 +482,10 @@ export default function Map() {
 
       try {
         const isFav = isFavorite(placeId);
-        const marker = L.marker([coords[1], coords[0]]).addTo(mapRef.current);
+        const emoji = getCategoryIcon(categoryId, categories);
+        const customIcon = createCustomIcon(emoji);
+        
+        const marker = L.marker([coords[1], coords[0]], { icon: customIcon }).addTo(mapRef.current);
         const avgRating = props.average_rating || 0;
 
         const createPopupContent = (isFavStatus) => {
