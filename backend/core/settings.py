@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASE_URL = config('DATABASE_URL', default=None)
 
-if DATABASE_URL:
+if DATABASE_URL and DATABASE_URL.strip():
     # Production: Using environment variable (Neon on Render)
     DATABASES = {
         'default': dj_database_url.config(
