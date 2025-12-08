@@ -38,6 +38,11 @@ COPY backend .
 
 # Copy frontend dist from builder
 COPY --from=frontend-builder /build/dist ./staticfiles/frontend
+COPY --from=frontend-builder /build/dist/index.html ./templates/index.html
+
+# Copy frontend assets
+RUN mkdir -p ./static/assets && \
+    cp -r ./staticfiles/frontend/assets/* ./static/assets/ || true
 
 # Collect static files
 RUN python manage.py collectstatic --noinput --clear || true
