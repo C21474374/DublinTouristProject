@@ -29,10 +29,8 @@
           margin: 0 0 0.5rem 0;
           font-size: 2.5rem;
           color: var(--text);
-          background: linear-gradient(135deg, var(--primary) 0%, var(--text) 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
+
+         
         }
 
         p {
@@ -118,7 +116,7 @@
 
         .submit-btn {
           padding: 1rem;
-          background: var(--primary);
+          background: var(--background);
           color: var(--text);
           border: none;
           border-radius: 8px;
@@ -132,7 +130,7 @@
 
           &:hover:not(:disabled) {
             transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 167, 225, 0.35);
+            background: var(--primary);
           }
 
           &:active:not(:disabled) {
@@ -157,14 +155,14 @@
           font-size: 0.95rem;
 
           a {
-            color: var(--primary);
+            color: var(--text);
             text-decoration: none;
             font-weight: 600;
             transition: all 0.2s ease;
 
             &:hover {
-              color: var(--text);
-              text-decoration: underline;
+              color: var(--background);
+              
               text-decoration-color: var(--primary);
               text-underline-offset: 4px;
             }
