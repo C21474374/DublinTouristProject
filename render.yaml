@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: dublin-guide
+    env: docker
+    plan: free
+    
+    envVars:
+      - key: DEBUG
+        scope: build,runtime
+        value: "False"
+      - key: SECRET_KEY
+        scope: build,runtime
+        sync: false
+      - key: DATABASE_URL
+        scope: build,runtime
+        sync: false
+      - key: ALLOWED_HOSTS
+        scope: build,runtime
+        value: "dublin-guide.onrender.com"
+      - key: CORS_ALLOWED_ORIGINS
+        scope: build,runtime
+        value: "https://dublin-guide.onrender.com"
+    
+    preDeployCommand: "python backend/manage.py migrate && python backend/manage.py collectstatic --noinput"
