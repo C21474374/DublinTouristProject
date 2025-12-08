@@ -10,6 +10,7 @@ import PlaceDetailsModal from './PlaceDetailsModal';
 import PhotoUploadModal from './PhotoUploadModal';
 import Filters from './Filters';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../context/ThemeContext';
 
 const API_BASE = 'http://localhost:8000/api';
 
@@ -20,6 +21,7 @@ export default function Map() {
   const geoJsonLayerRef = useRef(null);
   const routingControlRef = useRef(null);
   const userMarkerRef = useRef(null);
+  const { theme } = useTheme();
   
   const [places, setPlaces] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -459,23 +461,23 @@ export default function Map() {
           popupContent.className = 'map-popup';
           popupContent.innerHTML = `
             <h5>${props.name || 'Unknown'}</h5>
-            <p style="margin: 0.5rem 0; font-size: 0.85rem; color: #666;">
-              <span style="color: #ffc107;">
+            <p class="popup-rating">
+              <span class="popup-stars">
                 ${'★'.repeat(Math.round(avgRating))}${'☆'.repeat(5 - Math.round(avgRating))}
               </span>
               (${avgRating.toFixed(1)}/5)
             </p>
-            <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap;">
-              <button class="directions-popup-btn" style="flex: 1; min-width: 70px; padding: 0.5rem; font-size: 0.75rem; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            <div class="popup-buttons">
+              <button class="directions-popup-btn">
                 🧭 Directions
               </button>
-              <button class="photo-popup-btn" style="flex: 1; min-width: 70px; padding: 0.5rem; font-size: 0.75rem; background: #ff9800; color: white; border: none; border-radius: 4px; cursor: pointer;">
+              <button class="photo-popup-btn">
                 📷 Photos
               </button>
-              <button class="favorite-popup-btn" style="flex: 1; min-width: 60px; padding: 0.5rem; font-size: 0.85rem;">
+              <button class="favorite-popup-btn">
                 ${isFavStatus ? '❤️' : '🤍'}
               </button>
-              <button class="details-popup-btn" style="flex: 1; min-width: 70px; padding: 0.5rem; font-size: 0.75rem; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer;">
+              <button class="details-popup-btn">
                 View More →
               </button>
             </div>
@@ -555,7 +557,7 @@ export default function Map() {
 
     const geoJsonLayer = L.geoJSON(geoJsonFeatures, {
       style: {
-        color: '#667eea',
+        color: theme.primary,
         weight: 2,
         opacity: 0.7,
         fillOpacity: 0.1,
@@ -581,30 +583,22 @@ export default function Map() {
     }).addTo(mapRef.current);
 
     geoJsonLayerRef.current = geoJsonLayer;
-  }, [areas, filters.selectedArea, mapRef.current]);
+  }, [areas, filters.selectedArea, mapRef.current, theme]);
 
   return (
     <>
-      <button className="mobile-filters-toggle" onClick={() => setShowFilters(!showFilters)}>
+      <button 
+        className="mobile-filters-toggle" 
+        onClick={() => setShowFilters(!showFilters)}
+        style={{ background: theme.primary }}
+      >
         {showFilters ? '✕ Close' : '☰ Filters'}
       </button>
 
       <button 
         onClick={getUserLocation}
-        style={{
-          position: 'absolute',
-          bottom: '80px',
-          right: '20px',
-          zIndex: 999,
-          padding: '10px 15px',
-          backgroundColor: '#667eea',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          fontSize: '14px',
-          fontWeight: 'bold'
-        }}
+        className="location-btn"
+        style={{ background: theme.primary }}
       >
         📍 My Location
       </button>
@@ -612,29 +606,14 @@ export default function Map() {
       {directionsOpen && (
         <button 
           onClick={closeDirections}
-          style={{
-            position: 'absolute',
-            bottom: '130px',
-            right: '20px',
-            zIndex: 999,
-            padding: '10px 15px',
-            backgroundColor: '#dc3545',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 'bold'
-          }}
+          className="close-directions-btn"
         >
           ✕ Close Directions
         </button>
       )}
 
       <div className="map-wrapper">
-        <div className={`left-panel ${showFilters ? 'show' : ''}`}>
-          
-          
+        <div className={`left-panel ${showFilters ? 'show' : ''}`} style={{ background: theme.background, color: theme.text }}>
           <Filters 
             filters={filters}
             setFilters={setFilters}

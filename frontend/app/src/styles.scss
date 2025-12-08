@@ -1,3 +1,32 @@
+// Dublin Color Variables
+:root {
+  --primary: #00A7E1;      /* Fresh sky */
+  --secondary: #007EA7;    /* Cerulean */
+  --accent: #003459;       /* Deep space blue */
+  --ink-black: #00171F;    /* Ink black */
+  --white: #FFFFFF;
+  --background: #FFFFFF;
+  --text: #00171F;
+  --surface: #F5F5F5;
+  --border: #E0E0E0;
+  --success: #28a745;
+  --error: #dc3545;
+}
+
+body.dark-mode {
+  --primary: #00A7E1;      /* Fresh sky */
+  --secondary: #007EA7;    /* Cerulean */
+  --accent: #003459;       /* Deep space blue */
+  --ink-black: #00171F;    /* Ink black */
+  --white: #FFFFFF;
+  --background: #00171F;
+  --text: #FFFFFF;
+  --surface: #003459;
+  --border: #007EA7;
+  --success: #28a745;
+  --error: #dc3545;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -19,6 +48,9 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--background);
+  color: var(--text);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .app {
@@ -26,6 +58,8 @@ body {
   width: 100%;
   height: 100vh;
   overflow: hidden;
+  background-color: var(--background);
+  color: var(--text);
 
   &.sidebar-open {
     .main-content {
@@ -50,13 +84,15 @@ body {
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease;
+    background-color: var(--background);
+    color: var(--text);
 
     .btn-toggle {
       position: fixed;
       top: 1rem;
       left: 1rem;
       z-index: 500;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--primary);
       border: none;
       color: white;
       padding: 0.75rem;
@@ -66,9 +102,15 @@ body {
       display: flex;
       align-items: center;
       justify-content: center;
+      font-weight: 600;
 
       &:hover {
         transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(0, 167, 225, 0.3);
+      }
+
+      &:active {
+        transform: scale(0.95);
       }
     }
 
@@ -77,6 +119,8 @@ body {
       width: 100%;
       height: 100%;
       overflow: auto;
+      background-color: var(--background);
+      color: var(--text);
     }
   }
 }
@@ -93,6 +137,59 @@ body {
   z-index: 400;
 }
 
+/* Global button styles */
+button {
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+/* Global input styles */
+input,
+select,
+textarea {
+  background-color: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  transition: all 0.3s ease;
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0, 167, 225, 0.1);
+  }
+
+  &::placeholder {
+    color: rgba(0, 1, 31, 0.5);
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+
+  &:hover {
+    background: var(--primary);
+  }
+}
+
+/* Responsive design */
 @media (max-width: 768px) {
   .app.sidebar-closed {
     .main-content {

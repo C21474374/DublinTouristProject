@@ -17,6 +17,7 @@ import Profile from './pages/Profile.jsx';
 import NotFound from './pages/NotFound.jsx';
 
 import './styles.scss';
+import { ThemeProvider } from './context/ThemeContext';
 
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -76,9 +77,11 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
