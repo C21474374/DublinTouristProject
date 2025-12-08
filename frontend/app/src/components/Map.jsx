@@ -363,17 +363,19 @@ export default function Map() {
         L.latLng(userLocation[0], userLocation[1]),
         L.latLng(coords[1], coords[0])
       ],
-      routeWhileDragging: true,
+      routeWhileDragging: false,
       show: true,
       addWaypoints: false,
+      alternative: false,
+      language: 'en',
       lineOptions: {
-        styles: [{ color: '#28a745', weight: 4, opacity: 0.8 }]
+        styles: [{ color: '#287ab4ff', weight: 4, opacity: 0.8 }]
       }
     }).addTo(mapRef.current);
 
     routingControlRef.current = newRoutingControl;
     setDirectionsOpen(true);
-    console.log('🧭 Directions shown to', props.name);
+    console.log('Directions shown to', props.name);
   };
 
   // Add this new function to close directions
@@ -382,7 +384,7 @@ export default function Map() {
       mapRef.current.removeControl(routingControlRef.current);
       routingControlRef.current = null;
       setDirectionsOpen(false);
-      console.log('🧭 Directions closed');
+      console.log('Directions closed');
     }
   };
 
@@ -501,16 +503,16 @@ export default function Map() {
             </p>
             <div class="popup-buttons">
               <button class="directions-popup-btn">
-                🧭 Directions
+              Directions
               </button>
               <button class="photo-popup-btn">
-                📷 Photos
+              Photos
               </button>
               <button class="favorite-popup-btn">
                 ${isFavStatus ? '❤️' : '🤍'}
               </button>
               <button class="details-popup-btn">
-                View More →
+                View More
               </button>
             </div>
           `;
@@ -622,7 +624,7 @@ export default function Map() {
       <button 
         className="mobile-filters-toggle" 
         onClick={() => setShowFilters(!showFilters)}
-        style={{ background: theme.primary }}
+        
       >
         {showFilters ? '✕ Close' : '☰ Filters'}
       </button>
@@ -630,9 +632,9 @@ export default function Map() {
       <button 
         onClick={getUserLocation}
         className="location-btn"
-        style={{ background: theme.primary }}
+        
       >
-        📍 My Location
+      My Location
       </button>
 
       {directionsOpen && (
@@ -640,7 +642,7 @@ export default function Map() {
           onClick={closeDirections}
           className="close-directions-btn"
         >
-          ✕ Close Directions
+          Cancel Directions
         </button>
       )}
 

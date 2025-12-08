@@ -43,7 +43,7 @@ export default function Filters({
           checked={filters.favoritesOnly}
           onChange={(e) => setFilters(prev => ({ ...prev, favoritesOnly: e.target.checked }))}
         />
-        ❤️ Favorites
+        Favorites❤️
       </label>
 
       {/* Child Friendly Filter */}
@@ -53,7 +53,7 @@ export default function Filters({
           checked={filters.childFriendly}
           onChange={(e) => setFilters(prev => ({ ...prev, childFriendly: e.target.checked }))}
         />
-        👧 Child Friendly
+        Child Friendly
       </label>
 
       {/* Wheelchair Access Filter */}
@@ -63,7 +63,7 @@ export default function Filters({
           checked={filters.wheelchairAccess}
           onChange={(e) => setFilters(prev => ({ ...prev, wheelchairAccess: e.target.checked }))}
         />
-        ♿ Wheelchair Access
+        Wheelchair Access
       </label>
 
       {/* Nearby Filter */}
@@ -80,7 +80,7 @@ export default function Filters({
             }
           }}
         />
-        📍 Nearby Places
+        Nearby Places
       </label>
 
       {filters.nearbyOnly && (
@@ -111,7 +111,7 @@ export default function Filters({
 
       {/* Places List */}
       <div className="places-list">
-        <h4>📍 Places ({filteredPlaces.filter(p => {
+        <h4>Places ({filteredPlaces.filter(p => {
           const props = p.properties || p;
           return props.name.toLowerCase().includes(searchTerm.toLowerCase());
         }).length})</h4>
@@ -120,7 +120,7 @@ export default function Filters({
         <div className="filter-search">
           <input
             type="text"
-            placeholder="🔍 Search places..."
+            placeholder="Search places..."
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
             className="filter-search-input"

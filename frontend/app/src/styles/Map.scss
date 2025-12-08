@@ -1,14 +1,3 @@
-// Dublin Theme Colors
-$primary: #00A7E1;        // Fresh sky
-$secondary: #007EA7;      // Cerulean
-$accent: #003459;         // Deep space blue
-$ink-black: #00171F;      // Ink black
-$white: #FFFFFF;
-$light-bg: #f5f5f5;
-$border-color: #ddd;
-$text-dark: #333;
-$text-muted: #666;
-
 .map-wrapper {
   display: flex;
   height: 100vh;
@@ -32,7 +21,7 @@ $text-muted: #666;
       font-size: 1.5rem;
       border-bottom: 1px solid var(--border);
       flex-shrink: 0;
-      color: var(--primary);
+      color: var(--text);
     }
   }
 
@@ -48,7 +37,7 @@ $text-muted: #666;
   }
 
   .map-popup {
-    background: var(--background);
+    background: var(--surface);
     color: var(--text);
     padding: 1rem !important;
 
@@ -62,7 +51,7 @@ $text-muted: #666;
     .popup-rating {
       margin: 0.75rem 0;
       font-size: 0.9rem;
-      color: rgba(0, 1, 31, 0.7);
+      color: var(--text);
 
       .popup-stars {
         color: #ffc107;
@@ -85,7 +74,7 @@ $text-muted: #666;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.2s;
-        color: white;
+        color: var(--text);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -102,23 +91,23 @@ $text-muted: #666;
         }
 
         &.directions-popup-btn {
-          background: #28a745;
+          background: var(--primary);
           grid-column: 1;
         }
 
         &.photo-popup-btn {
-          background: #ff9800;
+          background: var(--primary);
           grid-column: 2;
         }
 
         &.favorite-popup-btn {
           background: var(--primary);
           grid-column: 1;
-          font-size: 1.2rem;
+          
         }
 
         &.details-popup-btn {
-          background: var(--secondary);
+          background: var(--primary);
           grid-column: 2;
         }
       }
@@ -161,20 +150,20 @@ $text-muted: #666;
   right: 1rem;
   z-index: 1001;
   padding: 0.75rem 1rem;
-  background: var(--primary);
-  color: white;
+  background: var(--background);
+  color: var(--text);
   border: none;
   border-radius: 50px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 167, 225, 0.4);
+  
   transition: all 0.3s ease;
   display: none;
 
   &:hover {
     transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(0, 167, 225, 0.6);
+    background: var(--surface);
   }
 
   &:active {
@@ -188,20 +177,20 @@ $text-muted: #666;
   bottom: 20px;
   right: 20px;
   z-index: 999;
-  padding: 10px 15px;
+  padding: 0.75rem 0.5rem;
   background: var(--primary);
-  color: white;
+  color: var(--text);
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: bold;
+  font-size: 1rem;
+  font-weight: 600;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 167, 225, 0.3);
+ 
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 167, 225, 0.4);
+  
   }
 
   &:active {
@@ -215,20 +204,20 @@ $text-muted: #666;
   bottom: 70px;
   right: 20px;
   z-index: 999;
-  padding: 10px 15px;
+  padding: 0.75rem 0.5rem;
   background: var(--error);
-  color: white;
+  color: var(--text);
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: bold;
+  font-size: 1rem;
+  font-weight: 600;
   transition: all 0.3s ease;
 
   &:hover {
     opacity: 0.9;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    
   }
 
   &:active {
@@ -357,4 +346,191 @@ $text-muted: #666;
 .leaflet-marker-icon:hover .custom-marker {
   transform: scale(1.2);
   filter: drop-shadow(0 6px 16px rgba(0, 167, 225, 0.7));
+}
+
+/* Leaflet Routing Machine Styling */
+.leaflet-routing-container {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  border: 2px solid var(--primary) !important;
+
+  .leaflet-routing-header {
+    background: var(--primary) !important;
+    color: var(--text) !important;
+    border-radius: 6px 6px 0 0 !important;
+    padding: 1rem !important;
+    font-weight: 600 !important;
+  }
+
+  .leaflet-routing-alt {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+    border-top: 1px solid var(--border) !important;
+    padding: 0.75rem !important;
+
+    &:hover {
+      background: var(--background) !important;
+    }
+
+    .leaflet-routing-alt-title {
+      color: var(--text) !important;
+      font-weight: 600 !important;
+    }
+
+    .leaflet-routing-summary {
+      color: var(--text-secondary, #666) !important;
+      font-size: 0.9rem !important;
+    }
+  }
+
+  .leaflet-routing-distance {
+    color: var(--primary) !important;
+    font-weight: 600 !important;
+    font-size: 1.1rem !important;
+  }
+
+  .leaflet-routing-time {
+    color: var(--text-secondary, #666) !important;
+    font-size: 0.9rem !important;
+  }
+
+  /* Instruction steps styling */
+  .leaflet-routing-instruction {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+    border-left: 4px solid var(--primary) !important;
+    padding: 0.75rem !important;
+    margin: 0.5rem 0 !important;
+    border-radius: 4px !important;
+
+    &:hover {
+      background: var(--background) !important;
+      border-left-color: var(--primary) !important;
+    }
+
+    .leaflet-routing-instruction-icon {
+      background-color: var(--primary) !important;
+      color: white !important;
+    }
+
+    .leaflet-routing-instruction-text {
+      color: var(--text) !important;
+    }
+
+    .leaflet-routing-instruction-distance {
+      color: var(--text-secondary, #666) !important;
+      font-size: 0.85rem !important;
+    }
+  }
+
+  /* Buttons styling */
+  button {
+    background: var(--primary) !important;
+    color: var(--text) !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 0.75rem 1rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+
+    &:hover {
+      opacity: 0.9 !important;
+      transform: translateY(-2px) !important;
+      box-shadow: 0 4px 8px rgba(0, 167, 225, 0.3) !important;
+    }
+
+    &:active {
+      transform: translateY(0) !important;
+    }
+  }
+
+  /* Close button styling */
+  .leaflet-routing-close-button {
+    background: var(--error, #dc3545) !important;
+    color: white !important;
+    border-radius: 50% !important;
+    width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+
+    &:hover {
+      opacity: 0.9 !important;
+    }
+  }
+
+  /* Scrollbar styling for long routes */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--background) !important;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--primary) !important;
+    border-radius: 4px;
+
+    &:hover {
+      background: var(--primary) !important;
+      opacity: 0.8;
+    }
+  }
+}
+
+/* Leaflet routing control position */
+.leaflet-routing-container {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  max-height: 50vh !important;
+  overflow-y: auto !important;
+  z-index: 1000 !important;
+  top: auto !important;
+  border-radius: 12px 12px 0 0 !important;
+
+  @media (min-width: 769px) {
+    position: absolute !important;
+    top: 10px !important;
+    right: 10px !important;
+    bottom: auto !important;
+    left: auto !important;
+    width: 350px !important;
+    max-height: 80vh !important;
+    border-radius: 8px !important;
+    z-index: 800 !important;
+  }
+
+  @media (max-width: 1024px) {
+    width: 300px !important;
+  }
+
+  @media (max-width: 768px) {
+    width: calc(100vw - 20px) !important;
+    height: auto !important;
+    max-height: 50vh !important;
+    right: 10px !important;
+    left: 10px !important;
+    border-radius: 12px 12px 0 0 !important;
+  }
+
+  @media (max-width: 480px) {
+    width: calc(100vw - 16px) !important;
+    max-height: 45vh !important;
+    right: 8px !important;
+    left: 8px !important;
+  }
+}
+
+/* Route line styling */
+.leaflet-routing-container-hide {
+  display: none !important;
 }
