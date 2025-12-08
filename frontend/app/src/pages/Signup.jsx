@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { FaMoon, FaSun } from 'react-icons/fa';
+import { useTheme } from '../context/ThemeContext';
 import '../styles/Auth.scss';
 
 export default function Signup() {
@@ -16,6 +18,7 @@ export default function Signup() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { register } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -68,10 +71,19 @@ export default function Signup() {
 
   return (
     <div className="auth-page">
+      <button 
+        className="floating-theme-toggle"
+        onClick={toggleTheme}
+        aria-label="Toggle theme"
+        title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+      >
+        {isDark ? <FaSun /> : <FaMoon />}
+      </button>
+
       <div className="auth-container">
         <div className="auth-card">
           <div className="auth-header">
-            <h1>🗺️ Tourist Guide</h1>
+            <h1>Dublin Guide</h1>
             <p>Create your account</p>
           </div>
 
@@ -88,7 +100,6 @@ export default function Signup() {
                   placeholder="First name"
                 />
               </div>
-
               <div className="form-group">
                 <label htmlFor="last_name">Last Name</label>
                 <input
