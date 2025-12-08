@@ -25,7 +25,7 @@ from .serializers import (
 import os
 import csv
 from django.conf import settings
-from kaggle.api.kaggle_api_extended import KaggleApi
+
 
 
 # ---------------------------------------------------
