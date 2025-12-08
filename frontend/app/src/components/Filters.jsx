@@ -18,14 +18,11 @@ export default function Filters({
 
   const handleSearch = (value) => {
     setSearchTerm(value);
-    // You can add search filter here if needed
   };
 
   return (
     <div className="filters-panel">
       <h3>Filter by:</h3>
-
-
 
       {/* Category Filter */}
       <select 
@@ -152,16 +149,16 @@ export default function Filters({
                 className="place-card"
                 onClick={() => onPlaceCardClick(place)}
               >
-                <div style={{ cursor: 'pointer' }}>
+                <div className="place-card-content">
                   <h5>{properties.name}</h5>
                   <p className="desc">{properties.description?.substring(0, 50)}...</p>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
-                    <p className="price"><strong>€{properties.price}</strong></p>
-                    <div style={{ fontSize: '0.9rem' }}>
-                      <span style={{ color: '#ffc107' }}>
+                  <div className="place-card-footer">
+                    <p className="price">€{properties.price}</p>
+                    <div className="rating">
+                      <span className="stars">
                         {'★'.repeat(Math.round(avgRating))}{'☆'.repeat(5 - Math.round(avgRating))}
                       </span>
-                      <span style={{ color: '#666', marginLeft: '0.25rem' }}>
+                      <span className="rating-value">
                         ({avgRating.toFixed(1)})
                       </span>
                     </div>

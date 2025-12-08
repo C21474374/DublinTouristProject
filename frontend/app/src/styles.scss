@@ -1,28 +1,30 @@
 // Dublin Color Variables
 :root {
-  --primary: #00A7E1;      /* Fresh sky */
-  --secondary: #007EA7;    /* Cerulean */
-  --accent: #003459;       /* Deep space blue */
+  --primary: #FFFFFF;      /* Fresh sky - Liffey River */
+  --secondary: #FFFFFF;    /* Cerulean - Dublin Bay */
+  --accent: #003459;       /* Deep space blue - Georgian doors */
   --ink-black: #00171F;    /* Ink black */
   --white: #FFFFFF;
-  --background: #FFFFFF;
+  --background: #83c6e5;
   --text: #00171F;
   --surface: #F5F5F5;
   --border: #E0E0E0;
+  --sidebar: #83c6e5;      /* Dark sidebar */
   --success: #28a745;
   --error: #dc3545;
 }
 
 body.dark-mode {
-  --primary: #00A7E1;      /* Fresh sky */
-  --secondary: #007EA7;    /* Cerulean */
-  --accent: #003459;       /* Deep space blue */
-  --ink-black: #00171F;    /* Ink black */
+  --primary: #132a35;      /* Bright Liffey */
+  --secondary: #132a35;    /* Sky blue */
+  --accent: #FF6B6B;       /* Georgian red accent */
+  --ink-black: #00171F;
   --white: #FFFFFF;
-  --background: #00171F;
+  --background: #0d212a;   /* Deep Dublin night */
   --text: #FFFFFF;
-  --surface: #003459;
-  --border: #007EA7;
+  --surface: #17323f;      /* Deep blue cards */
+  --border: #00171F;       /* Blue border */
+  --sidebar: #00171F;      /* Darkest sidebar */
   --success: #28a745;
   --error: #dc3545;
 }

@@ -4,26 +4,28 @@ const ThemeContext = createContext();
 
 export const themes = {
   light: {
-    primary: '#00A7E1',
-    secondary: '#007EA7',
-    accent: '#003459',
-    background: '#FFFFFF',
-    text: '#00171F',
-    surface: '#F5F5F5',
-    border: '#E0E0E0',
+    primary: '#FFFFFF',       /* Fresh sky - Liffey River */
+    secondary: '#FFFFFF',     /* Cerulean - Dublin Bay */
+    accent: '#11add4ff',        /* Deep space blue - Georgian doors */
+    background: '#FFFFFF',    /* White */
+    text: '#00171F',          /* Ink black */
+    surface: '#F8F9FA',       /* Very light gray */
+    border: '#E0E0E0',        /* Light border */
+    sidebar: '#3fb8f0ff',       /* Dark sidebar */
     success: '#28a745',
-    error: '#dc3545',
+    error: '#dc3545'
   },
   dark: {
-    primary: '#00A7E1',
-    secondary: '#007EA7',
-    accent: '#003459',
-    background: '#00171F',
-    text: '#FFFFFF',
-    surface: '#003459',
-    border: '#007EA7',
+    primary: '#132a35',       /* Bright Liffey blue */
+    secondary: '#132a35',     /* Sky blue */
+    accent: '#FF6B6B',        /* Georgian door red accent */
+    background: '#0d212a',    /* Deep Dublin night sky */
+    text: '#FFFFFF',          /* White text */
+    surface: '#132a35',       /* Deep blue cards */
+    border: '#007EA7',        /* Blue border */
+    sidebar: '#00171F',       /* Darkest sidebar */
     success: '#28a745',
-    error: '#dc3545',
+    error: '#FF6B6B'
   }
 };
 

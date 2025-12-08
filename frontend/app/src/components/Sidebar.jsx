@@ -6,7 +6,7 @@ import '../styles/Sidebar.scss';
 
 export default function Sidebar({ toggled, handleToggleSidebar }) {
   const location = useLocation();
-  const { theme, isDark, toggleTheme } = useTheme();
+  const { isDark, toggleTheme } = useTheme();
 
   const menuItems = [
     { path: '/', label: 'Map Explorer', icon: <FaMap /> },
@@ -19,12 +19,9 @@ export default function Sidebar({ toggled, handleToggleSidebar }) {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <aside 
-      className={`sidebar ${toggled ? 'open' : 'closed'}`}
-      style={{ background: theme.background, color: theme.text }}
-    >
+    <aside className={`sidebar ${toggled ? 'open' : 'closed'}`}>
       <div className="sidebar-header">
-        <h2>Dublin Guide</h2>
+        <h1>Dublin Guide</h1>
         <button
           className="close-btn"
           onClick={() => handleToggleSidebar(false)}
@@ -41,10 +38,6 @@ export default function Sidebar({ toggled, handleToggleSidebar }) {
             to={item.path}
             className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
             onClick={() => handleToggleSidebar(false)}
-            style={{
-              color: isActive(item.path) ? theme.primary : theme.text,
-              borderLeft: isActive(item.path) ? `3px solid ${theme.primary}` : 'none',
-            }}
           >
             <span className="nav-icon">{item.icon}</span>
             <span className="nav-label">{item.label}</span>
@@ -56,10 +49,6 @@ export default function Sidebar({ toggled, handleToggleSidebar }) {
         <button 
           className="theme-toggle-btn"
           onClick={toggleTheme}
-          style={{ 
-            background: theme.primary,
-            color: 'white'
-          }}
           aria-label="Toggle theme"
         >
           {isDark ? <FaSun /> : <FaMoon />} {isDark ? 'Light' : 'Dark'}

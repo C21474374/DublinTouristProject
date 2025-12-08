@@ -1,8 +1,8 @@
 .sidebar {
   width: 250px;
   height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--sidebar);
+  color: var(--text);
   padding: 2rem 0;
   position: fixed;
   left: 0;
@@ -29,16 +29,17 @@
     padding: 0 1.5rem;
     margin-bottom: 2rem;
 
-    h2 {
+    h1 {
       margin: 0;
-      font-size: 1.3rem;
-      font-weight: 700;
+      font-size: 1.6rem;
+      font-weight: 1000;
+      color: var(--primary);
     }
 
     .close-btn {
       background: none;
       border: none;
-      color: white;
+      color: var(--text);
       font-size: 1.5rem;
       cursor: pointer;
       padding: 0;
@@ -63,20 +64,22 @@
       align-items: center;
       gap: 1rem;
       padding: 1rem 1.5rem;
-      color: white;
+      color: var(--text);
       text-decoration: none;
       transition: all 0.3s ease;
       border-left: 3px solid transparent;
       font-size: 1rem;
 
       &:hover {
-        background: rgba(255, 255, 255, 0.1);
-        border-left-color: white;
+        background: rgba(0, 167, 225, 0.1);
+        border-left-color: var(--primary);
+        color: var(--primary);
       }
 
       &.active {
-        background: rgba(255, 255, 255, 0.2);
-        border-left-color: white;
+        background: rgba(0, 167, 225, 0.15);
+        border-left-color: var(--primary);
+        color: var(--primary);
         font-weight: 600;
       }
 
@@ -93,12 +96,13 @@
 
   .sidebar-footer {
     padding: 1rem;
-    border-top: 1px solid;
-    border-top-color: inherit;
+    border-top: 1px solid var(--border);
 
     .theme-toggle-btn {
       width: 100%;
       padding: 0.75rem;
+      background: var(--primary);
+      color: white;
       border: none;
       border-radius: 6px;
       font-weight: 600;
@@ -112,6 +116,10 @@
       &:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0, 167, 225, 0.3);
+      }
+
+      &:active {
+        transform: translateY(0);
       }
     }
   }

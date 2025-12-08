@@ -1,0 +1,38 @@
+:root {
+  --primary: #00A7E1;
+  --secondary: #007EA7;
+  --accent: #003459;
+  --background: #FFFFFF;
+  --text: #00171F;
+  --surface: #F5F5F5;
+  --border: #E0E0E0;
+  --success: #28a745;
+  --error: #dc3545;
+}
+
+body.dark-mode {
+  --primary: #00A7E1;
+  --secondary: #007EA7;
+  --accent: #003459;
+  --background: #00171F;
+  --text: #FFFFFF;
+  --surface: #003459;
+  --border: #007EA7;
+  --success: #28a745;
+  --error: #dc3545;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text);
+  transition: background-color 0.3s, color 0.3s;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+}
