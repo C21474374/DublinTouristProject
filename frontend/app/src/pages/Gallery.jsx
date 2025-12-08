@@ -148,13 +148,17 @@ export default function Gallery() {
               <p className="place-description">
                 {currentPlaceProps.description || 'No description available'}
               </p>
-              {currentPlaceProps.average_rating && (
+              {currentPlaceProps.average_rating !== null && currentPlaceProps.average_rating !== undefined && currentPlaceProps.average_rating > 0 ? (
                 <div className="place-rating">
                   <span style={{ color: '#ffc107' }}>
                     {'★'.repeat(Math.round(currentPlaceProps.average_rating))}
                     {'☆'.repeat(5 - Math.round(currentPlaceProps.average_rating))}
                   </span>
                   <span>({currentPlaceProps.average_rating.toFixed(1)}/5)</span>
+                </div>
+              ) : (
+                <div className="place-rating">
+                  <span style={{ color: '#999' }}>No ratings yet</span>
                 </div>
               )}
             </div>
