@@ -12,6 +12,8 @@ urlpatterns = [
 
     # Profile
     path("profile/me/", views.MeProfileAPIView.as_view(), name="profile-me"),
+    path("users/<int:pk>/", views.UserUpdateAPIView.as_view(), name="user-update"),
+    path("change-password/", views.ChangePasswordAPIView.as_view(), name="change-password"),
 
     # Favorites
     path("favourites/", views.FavouriteListCreateAPIView.as_view(), name="favourites-list-create"),

@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.authtoken.models import Token
 from rest_framework import serializers
+from rest_framework.decorators import api_view, permission_classes
 
 from .models import TouristProfile, FavouritePlace, PlacePhoto
 from .serializers import (
@@ -16,6 +17,7 @@ from .serializers import (
     UserRegisterSerializer,
     UserLoginSerializer,
     UserSerializer,
+    ChangePasswordSerializer,
 )
 from places.models import Place
 
@@ -211,3 +213,46 @@ class UserDetailAPIView(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+# ---------------------------------------------------
+# UPDATE USER PROFILE
+# ---------------------------------------------------
+class UserUpdateAPIView(generics.UpdateAPIView):
+    """
+    PATCH /api/users/<id>/
+    """
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = self.get_serializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+# ---------------------------------------------------
+# CHANGE PASSWORD
+# ---------------------------------------------------
+class ChangePasswordAPIView(generics.GenericAPIView):
+    """
+    POST /api/change-password/
+    {
+        "old_password": "current_password",
+        "new_password": "new_password",
+        "new_password2": "new_password"
+    }
+    """
+    serializer_class = ChangePasswordSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"detail": "Password changed successfully."}, status=status.HTTP_200_OK)

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import '../styles/Filters.scss';
 
 export default function Filters({ 
@@ -13,9 +14,18 @@ export default function Filters({
   onToggleFavorite,
   isFavorite
 }) {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleSearch = (value) => {
+    setSearchTerm(value);
+    // You can add search filter here if needed
+  };
+
   return (
     <div className="filters-panel">
-      <h3>🔍 Filters</h3>
+      <h3>Filter by:</h3>
+
+
 
       {/* Category Filter */}
       <select 
@@ -36,7 +46,7 @@ export default function Filters({
           checked={filters.favoritesOnly}
           onChange={(e) => setFilters(prev => ({ ...prev, favoritesOnly: e.target.checked }))}
         />
-        ❤️ Favorites Only
+        ❤️ Favorites
       </label>
 
       {/* Child Friendly Filter */}
@@ -104,13 +114,34 @@ export default function Filters({
 
       {/* Places List */}
       <div className="places-list">
-        <h4>📍 Places ({filteredPlaces.length})</h4>
+        <h4>📍 Places ({filteredPlaces.filter(p => {
+          const props = p.properties || p;
+          return props.name.toLowerCase().includes(searchTerm.toLowerCase());
+        }).length})</h4>
+
+        {/* Search Bar */}
+        <div className="filter-search">
+          <input
+            type="text"
+            placeholder="🔍 Search places..."
+            value={searchTerm}
+            onChange={(e) => handleSearch(e.target.value)}
+            className="filter-search-input"
+          />
+        </div>
+
         {loading ? (
           <p className="status">Loading...</p>
-        ) : filteredPlaces.length === 0 ? (
+        ) : filteredPlaces.filter(p => {
+          const props = p.properties || p;
+          return props.name.toLowerCase().includes(searchTerm.toLowerCase());
+        }).length === 0 ? (
           <p className="status">No places found</p>
         ) : (
-          filteredPlaces.map((place, idx) => {
+          filteredPlaces.filter(p => {
+            const props = p.properties || p;
+            return props.name.toLowerCase().includes(searchTerm.toLowerCase());
+          }).map((place, idx) => {
             const properties = place.properties || place;
             const favorite = isFavorite(place.id);
             const avgRating = properties.average_rating || 0;

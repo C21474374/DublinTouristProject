@@ -145,10 +145,29 @@
       flex-shrink: 0;
     }
 
-    .status {
-      text-align: center;
-      color: #999;
-      padding: 2rem 0;
+    .filter-search {
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #eee;
+    }
+
+    .filter-search-input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+
+      &:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      &::placeholder {
+        color: #999;
+      }
     }
 
     .place-card {

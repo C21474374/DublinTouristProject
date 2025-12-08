@@ -633,7 +633,7 @@ export default function Map() {
 
       <div className="map-wrapper">
         <div className={`left-panel ${showFilters ? 'show' : ''}`}>
-          <h1>🗺️ Tourist Guide</h1>
+          
           
           <Filters 
             filters={filters}
