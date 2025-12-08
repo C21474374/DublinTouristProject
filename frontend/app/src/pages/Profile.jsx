@@ -35,17 +35,44 @@ export default function Profile() {
 
   const fetchStats = async () => {
     try {
+      // Get photos
       const photosRes = await axios.get(`${API_BASE}/photos/`, {
         headers: { Authorization: `Token ${token}` }
       });
+
+      // Get favorites
       const favRes = await axios.get(`${API_BASE}/favourites/`, {
         headers: { Authorization: `Token ${token}` }
       });
 
+      // Get ratings from places
+      let ratingCount = 0;
+      try {
+        const placesRes = await axios.get(`${API_BASE}/places/`, {
+          headers: { Authorization: `Token ${token}` }
+        });
+
+        // PlaceDetailSerializer returns ratings in the data
+        const places = placesRes.data;
+        
+        if (Array.isArray(places)) {
+          places.forEach(place => {
+            const ratings = place.ratings || [];
+            if (Array.isArray(ratings)) {
+              ratingCount += ratings.filter(r => r.user === user?.id).length;
+            }
+          });
+        }
+      } catch (placesErr) {
+        console.error('Error fetching places:', placesErr);
+      }
+
+      console.log('Stats:', { photos: photosRes.data.length, favorites: favRes.data.length, ratings: ratingCount });
+
       setStats({
         photos: photosRes.data.length || 0,
         favorites: favRes.data.length || 0,
-        ratings: 0,
+        ratings: ratingCount,
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -150,13 +177,23 @@ export default function Profile() {
             </div>
           )}
 
-          {/* Stats */}
+          {/* Stats - CLICKABLE */}
           <div className="stats-grid">
-            <div className="stat-item">
+            <div 
+              className="stat-item"
+              onClick={() => navigate('/gallery')}
+              style={{ cursor: 'pointer' }}
+              title="View Gallery"
+            >
               <span className="stat-number">{stats.photos}</span>
               <span className="stat-label">Photos</span>
             </div>
-            <div className="stat-item">
+            <div 
+              className="stat-item"
+              onClick={() => navigate('/favorites')}
+              style={{ cursor: 'pointer' }}
+              title="View Favorites"
+            >
               <span className="stat-number">{stats.favorites}</span>
               <span className="stat-label">Favorites</span>
             </div>

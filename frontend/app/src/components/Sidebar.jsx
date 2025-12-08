@@ -19,7 +19,7 @@ export default function Sidebar({ toggled, handleToggleSidebar }) {
   return (
     <aside className={`sidebar ${toggled ? 'open' : 'closed'}`}>
       <div className="sidebar-header">
-        <h2>🗺️ Tourist Guide</h2>
+        <h2>Dublin Guide</h2>
         <button
           className="close-btn"
           onClick={() => handleToggleSidebar(false)}
@@ -43,11 +43,7 @@ export default function Sidebar({ toggled, handleToggleSidebar }) {
         ))}
       </nav>
 
-      <div className="sidebar-footer">
-        <button className="settings-btn" aria-label="Settings">
-          <FaCog /> Settings
-        </button>
-      </div>
+  
     </aside>
   );
 }
