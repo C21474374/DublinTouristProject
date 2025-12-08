@@ -12,6 +12,7 @@ import Login from './pages/Login.jsx';
 import Signup from './pages/Signup.jsx';
 import Itinerary from './pages/Itinerary.jsx';
 import Favorites from './pages/Favorites.jsx';
+import Gallery from './pages/Gallery.jsx';
 import Profile from './pages/Profile.jsx';
 import NotFound from './pages/NotFound.jsx';
 
@@ -61,6 +62,7 @@ function AppContent() {
           <Route path="/" element={<Home />} />
           <Route path="/itinerary" element={<Itinerary />} />
           <Route path="/favorites" element={<Favorites />} />
+          <Route path="/gallery" element={<Gallery />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/not-found" element={<NotFound />} />
           <Route path="*" element={<Navigate to="/not-found" />} />

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FaTimes, FaMap, FaRoute, FaUser, FaHeart, FaCog } from 'react-icons/fa';
+import { FaTimes, FaMap, FaRoute, FaUser, FaHeart, FaCog, FaImages } from 'react-icons/fa';
 import '../styles/Sidebar.scss';
 
 export default function Sidebar({ toggled, handleToggleSidebar }) {
@@ -10,6 +10,7 @@ export default function Sidebar({ toggled, handleToggleSidebar }) {
     { path: '/', label: 'Map Explorer', icon: <FaMap /> },
     { path: '/itinerary', label: 'Route Planner', icon: <FaRoute /> },
     { path: '/favorites', label: 'Favorites', icon: <FaHeart /> },
+    { path: '/gallery', label: 'Gallery', icon: <FaImages /> },
     { path: '/profile', label: 'My Account', icon: <FaUser /> },
   ];
 

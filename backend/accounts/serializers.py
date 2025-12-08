@@ -38,6 +38,7 @@ class PlacePhotoSerializer(serializers.ModelSerializer):
             "caption",
             "uploaded_at"
         ]
+        read_only_fields = ['user', 'place_name', 'uploaded_at']  # place is NOT here, so it's writable
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):

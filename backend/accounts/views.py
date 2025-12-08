@@ -158,7 +158,6 @@ class PlacePhotoListCreateAPIView(generics.ListCreateAPIView):
     def get_queryset(self):
         queryset = PlacePhoto.objects.all().select_related('user', 'place')
         
-        # Filter by place_id if provided
         place_id = self.request.query_params.get('place_id')
         if place_id:
             queryset = queryset.filter(place_id=place_id)
@@ -176,6 +175,7 @@ class PlacePhotoListCreateAPIView(generics.ListCreateAPIView):
         except Place.DoesNotExist:
             raise serializers.ValidationError({"place": "Place not found"})
         
+        # Pass both user AND place
         serializer.save(user=self.request.user, place=place)
 
 
