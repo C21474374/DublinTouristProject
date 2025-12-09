@@ -695,7 +695,7 @@ export default function Map() {
         onClick={() => setShowFilters(!showFilters)}
         
       >
-        {showFilters ? '✕ Close' : '☰ Filters'}
+        {showFilters ? 'Close' : 'Filters'}
       </button>
 
       <button 
