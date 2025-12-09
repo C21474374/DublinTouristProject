@@ -36,15 +36,16 @@ RUN pip install --no-cache-dir -r requirements.txt gunicorn
 # Copy backend code
 COPY backend .
 
-# Copy frontend dist to static directory (which Django will collectstatic to staticfiles)
+# Copy frontend dist to static directory
 COPY --from=frontend-builder /build/dist ./static
 
 # Copy the index.html to templates
 COPY --from=frontend-builder /build/dist/index.html ./templates/index.html
 
-# Collect static files (this will copy from ./static to ./staticfiles)
+# Collect static files
 RUN python manage.py collectstatic --noinput --clear
 
 EXPOSE 8000
 
-CMD ["gunicorn", "core.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "4", "--timeout", "120"]
+# Run migrations and start server
+CMD sh -c "python manage.py migrate && gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 120"
