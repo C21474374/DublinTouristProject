@@ -13,6 +13,22 @@ Place.objects.all().delete()
 Category.objects.all().delete()
 User.objects.filter(username__startswith='tourist_').delete()
 
+# Create admin user
+admin_user, created = User.objects.get_or_create(
+    username='admin',
+    defaults={
+        'email': 'admin@example.com',
+        'is_staff': True,
+        'is_superuser': True,
+    }
+)
+if created:
+    admin_user.set_password('admin123')
+    admin_user.save()
+    print(f"✓ Created admin user: admin / admin123")
+else:
+    print(f"✓ Admin user already exists")
+
 # Create test user
 test_user = User.objects.create_user(
     username='tourist_user',
