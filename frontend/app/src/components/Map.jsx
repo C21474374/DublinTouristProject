@@ -207,10 +207,28 @@ export default function Map() {
 
   const fetchCategories = async () => {
     try {
+      console.log('Fetching categories from:', `${API_BASE}/categories/`);
+      
       const response = await axios.get(`${API_BASE}/categories/`);
-      setCategories(response.data);
+      console.log('Raw categories response:', response.data);
+      
+      let categoriesData = [];
+      if (Array.isArray(response.data)) {
+        console.log('Categories: Using direct array');
+        categoriesData = response.data;
+      } else if (response.data.results && Array.isArray(response.data.results)) {
+        console.log('Categories: Using paginated results');
+        categoriesData = response.data.results;
+      } else {
+        console.warn('Unknown categories response format:', response.data);
+        categoriesData = [];
+      }
+      
+      console.log('Final categoriesData:', categoriesData);
+      setCategories(categoriesData);
     } catch (error) {
       console.error('Error fetching categories:', error);
+      setCategories([]);
     }
   };
 
