@@ -3,7 +3,11 @@ import axios from 'axios';
 
 export const AuthContext = createContext();
 
-const API_BASE = 'http://localhost:8000/api';
+// Determine API base URL based on environment
+const API_BASE = 
+  process.env.NODE_ENV === 'production'
+    ? 'https://dublin-guide.onrender.com/api'
+    : 'http://localhost:8000/api';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
