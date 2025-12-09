@@ -38,7 +38,11 @@ export default function Itinerary() {
   const fetchPlaces = async () => {
     try {
       const response = await axios.get(`${API_BASE}/places/`);
-      setPlaces(response.data.features || response.data);
+      // Handle both GeoJSON and paginated responses
+      const placesData = response.data.features || Array.isArray(response.data) 
+        ? response.data 
+        : response.data.results || [];
+      setPlaces(placesData);
     } catch (error) {
       console.error('Error fetching places:', error);
     }
@@ -47,7 +51,11 @@ export default function Itinerary() {
   const fetchSavedItineraries = async () => {
     try {
       const response = await axios.get(`${API_BASE}/itineraries/`);
-      setSavedItineraries(response.data);
+      // Handle both array and paginated responses
+      const itinerariesData = Array.isArray(response.data) 
+        ? response.data 
+        : response.data.results || [];
+      setSavedItineraries(itinerariesData);
     } catch (error) {
       console.error('Error fetching itineraries:', error);
     }
