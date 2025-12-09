@@ -42,6 +42,9 @@ class Place(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['name']  # Add this
+
     def __str__(self):
         return self.name
 
@@ -91,6 +94,7 @@ class Area(models.Model):
     
     class Meta:
         verbose_name_plural = "Areas"
+        ordering = ['name']  # Add this line
     
     def __str__(self):
         return self.name

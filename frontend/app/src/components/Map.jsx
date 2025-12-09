@@ -217,21 +217,29 @@ export default function Map() {
   const fetchPlaces = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE}/places/`);
+      console.log('Fetching places from:', `${API_BASE}/places/`);
       
-      // Handle different response formats
+      const response = await axios.get(`${API_BASE}/places/`);
+      console.log('Raw response:', response.data);
+      console.log('Response type:', typeof response.data);
+      console.log('Is array?', Array.isArray(response.data));
+      
       let placesData = [];
       if (response.data.features && Array.isArray(response.data.features)) {
-        // GeoJSON format
+        console.log('Using GeoJSON features');
         placesData = response.data.features;
       } else if (response.data.results && Array.isArray(response.data.results)) {
-        // Paginated format
+        console.log('Using paginated results');
         placesData = response.data.results;
       } else if (Array.isArray(response.data)) {
-        // Direct array format
+        console.log('Using direct array');
         placesData = response.data;
+      } else {
+        console.warn('Unknown response format:', response.data);
+        placesData = [];
       }
       
+      console.log('Final placesData:', placesData);
       setPlaces(placesData);
     } catch (error) {
       console.error('Error fetching places:', error);
@@ -582,17 +590,28 @@ export default function Map() {
 
   const fetchAreas = async () => {
     try {
+      console.log('Fetching areas from:', `${API_BASE}/areas/`);
+      
       const response = await fetch(`${API_BASE}/areas/`);
       const data = await response.json();
       
-      // Handle both direct array and paginated responses
+      console.log('Raw areas response:', data);
+      console.log('Areas response type:', typeof data);
+      console.log('Is array?', Array.isArray(data));
+      
       let areasData = [];
       if (Array.isArray(data)) {
+        console.log('Using direct array');
         areasData = data;
       } else if (data.results && Array.isArray(data.results)) {
+        console.log('Using paginated results');
         areasData = data.results;
+      } else {
+        console.warn('Unknown areas response format:', data);
+        areasData = [];
       }
       
+      console.log('Final areasData:', areasData);
       setAreas(areasData);
     } catch (error) {
       console.error('Error fetching areas:', error);
