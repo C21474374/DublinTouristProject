@@ -218,7 +218,21 @@ export default function Map() {
     try {
       setLoading(true);
       const response = await axios.get(`${API_BASE}/places/`);
-      setPlaces(response.data.features || response.data);
+      
+      // Handle different response formats
+      let placesData = [];
+      if (response.data.features && Array.isArray(response.data.features)) {
+        // GeoJSON format
+        placesData = response.data.features;
+      } else if (response.data.results && Array.isArray(response.data.results)) {
+        // Paginated format
+        placesData = response.data.results;
+      } else if (Array.isArray(response.data)) {
+        // Direct array format
+        placesData = response.data;
+      }
+      
+      setPlaces(placesData);
     } catch (error) {
       console.error('Error fetching places:', error);
       setPlaces([]);
@@ -570,9 +584,19 @@ export default function Map() {
     try {
       const response = await fetch(`${API_BASE}/areas/`);
       const data = await response.json();
-      setAreas(Array.isArray(data) ? data : data.results || []);
+      
+      // Handle both direct array and paginated responses
+      let areasData = [];
+      if (Array.isArray(data)) {
+        areasData = data;
+      } else if (data.results && Array.isArray(data.results)) {
+        areasData = data.results;
+      }
+      
+      setAreas(areasData);
     } catch (error) {
       console.error('Error fetching areas:', error);
+      setAreas([]);
     }
   };
 
