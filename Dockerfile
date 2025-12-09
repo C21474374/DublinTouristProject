@@ -36,13 +36,13 @@ RUN pip install --no-cache-dir -r requirements.txt gunicorn
 # Copy backend code
 COPY backend .
 
-# Copy frontend dist to static
+# Copy frontend dist to static directory (which Django will collectstatic to staticfiles)
 COPY --from=frontend-builder /build/dist ./static
 
-# Copy the NEW index.html (with /static/assets/ paths)
+# Copy the index.html to templates
 COPY --from=frontend-builder /build/dist/index.html ./templates/index.html
 
-# Collect static files
+# Collect static files (this will copy from ./static to ./staticfiles)
 RUN python manage.py collectstatic --noinput --clear
 
 EXPOSE 8000
