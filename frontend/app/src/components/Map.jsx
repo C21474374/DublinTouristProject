@@ -236,7 +236,12 @@ export default function Map() {
       const response = await axios.get(`${API_BASE}/favourites/`, {
         headers: { Authorization: `Token ${token}` }
       });
-      const favoritesData = response.data.map(fav => ({
+      // Fix: Handle paginated response
+      const favData = Array.isArray(response.data) 
+        ? response.data 
+        : response.data.results || [];
+      
+      const favoritesData = favData.map(fav => ({
         id: fav.place.id,
         ...fav
       }));
