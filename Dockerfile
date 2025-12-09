@@ -16,16 +16,22 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies including PostGIS
 RUN apt-get update && apt-get install -y \
     postgresql-client \
     libpq-dev \
     gdal-bin \
     libgdal-dev \
+    libgeos-dev \
+    libproj-dev \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
+# Set GDAL environment variables
 ENV GDAL_CONFIG=/usr/bin/gdal-config
+ENV GDAL_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/libgdal.so
+ENV GEOS_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/libgeos_c.so
+ENV PROJ_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/libproj.so
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 

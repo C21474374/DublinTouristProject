@@ -76,25 +76,15 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database Configuration
 DATABASE_URL = config('DATABASE_URL', default=None)
 
-if DATABASE_URL and DATABASE_URL.strip():
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.contrib.gis.db.backends.postgis',
-            'NAME': config('POSTGRES_DB', default='touristwebmap'),
-            'USER': config('POSTGRES_USER', default='postgres'),
-            'PASSWORD': config('POSTGRES_PASSWORD', default='password123'),
-            'HOST': config('POSTGRES_HOST', default='localhost'),
-            'PORT': config('POSTGRES_PORT', default='5433'),
-        }
-    }
+# For Render PostgreSQL with PostGIS
+DATABASES = {
+    'default': dj_database_url.config(
+        default='postgresql://localhost/tourist',
+        conn_max_age=600,
+        # Use PostGIS backend
+        engine='django.contrib.gis.db.backends.postgis'
+    )
+}
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
