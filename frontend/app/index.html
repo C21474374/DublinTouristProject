@@ -2,25 +2,43 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    
+    <!-- Viewport settings for responsive design and PWA support -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5" />
     
-    <!-- PWA Meta Tags -->
+    <!-- ===== PWA Meta Tags ===== -->
+    <!-- Enable PWA features on mobile devices -->
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    
+    <!-- Status bar styling for iOS -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    
+    <!-- App name for home screen -->
     <meta name="apple-mobile-web-app-title" content="Dublin Guide" />
+    
+    <!-- Theme color for address bar and browser UI -->
     <meta name="theme-color" content="#00a7e1" />
+    
+    <!-- App description for search engines -->
     <meta name="description" content="Explore Dublin's attractions, restaurants, museums and more" />
     
-    <!-- PWA Manifest -->
+    <!-- ===== PWA Manifest ===== -->
+    <!-- Link to PWA manifest file (defines app metadata, icons, etc) -->
     <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Apple touch icon for home screen on iOS -->
     <link rel="apple-touch-icon" href="/icon-192.png" />
     
     <title>Dublin Tourist Guide</title>
   </head>
   <body>
+    <!-- React root element - app mounts here -->
     <div id="root"></div>
+    
+    <!-- React entry point - loads main.jsx -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

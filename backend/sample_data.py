@@ -1,3 +1,11 @@
+"""
+Database seeding script to populate initial test data.
+Creates sample categories, places, users, and favorites for development.
+
+Run with: python manage.py shell < sample_data.py
+Or: python sample_data.py
+"""
+
 import os
 import django
 
@@ -7,13 +15,14 @@ django.setup()
 from django.contrib.auth.models import User
 from places.models import Category, Place
 from accounts.models import TouristProfile, FavouritePlace
+from django.contrib.gis.geos import Point
 
-# Clear existing data
+# Clear existing data to start fresh
 Place.objects.all().delete()
 Category.objects.all().delete()
 User.objects.filter(username__startswith='tourist_').delete()
 
-# Create admin user
+# Create admin user for Django admin interface
 admin_user, created = User.objects.get_or_create(
     username='admin',
     defaults={
@@ -29,7 +38,7 @@ if created:
 else:
     print(f"✓ Admin user already exists")
 
-# Create test user
+# Create test user for API testing
 test_user = User.objects.create_user(
     username='tourist_user',
     email='tourist@example.com',
@@ -38,7 +47,7 @@ test_user = User.objects.create_user(
 profile = TouristProfile.objects.create(user=test_user, points=0)
 print(f"✓ Created test user: {test_user.username}")
 
-# Create categories
+# Define place categories
 categories_data = [
     'Attraction',
     'Restaurant',
@@ -48,13 +57,14 @@ categories_data = [
     'Nightlife',
 ]
 
+# Create categories in database
 categories = {}
 for cat_name in categories_data:
     cat = Category.objects.create(name=cat_name)
     categories[cat_name] = cat
     print(f"✓ Created category: {cat_name}")
 
-# Dublin places data
+# Dublin tourist places with location and details
 places_data = [
     {
         'name': 'Guinness Storehouse',
@@ -227,14 +237,15 @@ places_data = [
     },
 ]
 
-# Create places
+# Create Place objects from sample data
 for place_data in places_data:
+    # Extract geographic data
     category_name = place_data.pop('category')
     latitude = place_data.pop('latitude')
     longitude = place_data.pop('longitude')
     
     try:
-        from django.contrib.gis.geos import Point
+        # Create Point object with WGS84 coordinates (longitude, latitude)
         location = Point(longitude, latitude, srid=4326)
         place = Place.objects.create(
             category=categories[category_name],
@@ -242,7 +253,8 @@ for place_data in places_data:
             **place_data
         )
     except Exception as e:
-        print(f"⚠ Creating {place_data['name']} without GIS")
+        # Fallback if PostGIS is not configured
+        print(f"⚠ Creating {place_data['name']} without GIS: {str(e)}")
         place = Place.objects.create(
             category=categories[category_name],
             latitude=latitude,
@@ -257,8 +269,8 @@ print(f"Created {Place.objects.count()} places")
 print(f"Created {Category.objects.count()} categories")
 print(f"Test user: tourist_user / testpass123")
 
-# Create sample favourites for testing
-places_to_favourite = Place.objects.all()[:6]  # First 6 places
+# Create sample favorites for testing the favorites API
+places_to_favourite = Place.objects.all()[:6]
 
 for place in places_to_favourite:
     FavouritePlace.objects.create(

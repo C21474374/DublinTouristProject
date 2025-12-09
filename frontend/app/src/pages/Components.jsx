@@ -1,3 +1,8 @@
+/**
+ * Components Demo Page
+ * Placeholder page for component showcases
+ */
+
 function Components() {
   return (
     <header>

@@ -1,3 +1,10 @@
+/**
+ * Favorites Page Component
+ * Displays user's favorite places in a grid layout
+ * Shows place details: ratings, price, time, popularity, amenities
+ * Users can remove favorites and navigate to map view
+ */
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -15,19 +22,23 @@ export default function Favorites() {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Fetch favorites on mount if user is authenticated
   useEffect(() => {
     if (token) {
       fetchFavorites();
     }
   }, [token]);
 
+  /**
+   * Fetch user's favorite places from API
+   * Handles both array and paginated responses
+   */
   const fetchFavorites = async () => {
     try {
       setLoading(true);
       const response = await axios.get(`${API_BASE}/favourites/`, {
         headers: { Authorization: `Token ${token}` }
       });
-      // Fix: Handle paginated response
       const favData = Array.isArray(response.data) 
         ? response.data 
         : response.data.results || [];
@@ -40,6 +51,10 @@ export default function Favorites() {
     }
   };
 
+  /**
+   * Remove a place from favorites
+   * Makes DELETE request to API
+   */
   const removeFavorite = async (placeId) => {
     try {
       await axios.delete(`${API_BASE}/favourites/${placeId}/`, {
@@ -51,10 +66,12 @@ export default function Favorites() {
     }
   };
 
+  // Show loading state
   if (loading) {
     return <div className="favorites-page"><p>Loading...</p></div>;
   }
 
+  // Show empty state
   if (favorites.length === 0) {
     return (
       <div className="favorites-page">
@@ -68,11 +85,13 @@ export default function Favorites() {
 
   return (
     <div className="favorites-page">
+      {/* Page header with count */}
       <div className="favorites-header">
         <h1>My Favourites ❤️</h1>
         <p>{favorites.length} place{favorites.length !== 1 ? 's' : ''} saved</p>
       </div>
 
+      {/* Favorites grid */}
       <div className="favorites-grid">
         {favorites.map((favorite) => {
           const place = favorite.place;
@@ -82,6 +101,7 @@ export default function Favorites() {
 
           return (
             <div key={favorite.id} className="favorite-card">
+              {/* Card header with name and remove button */}
               <div className="card-header">
                 <div className="card-title">
                   <h3>{props.name || 'Unknown'}</h3>
@@ -96,11 +116,12 @@ export default function Favorites() {
                 </button>
               </div>
 
+              {/* Place description */}
               <p className="description">{props.description || 'No description'}</p>
 
+              {/* Stats grid - rating, price, time, popularity */}
               <div className="card-stats">
                 <div className="stat-item">
-                  
                   <div className="stat-content">
                     <span className="stat-label">Rating</span>
                     <span className="stat-value">
@@ -119,7 +140,6 @@ export default function Favorites() {
                 </div>
 
                 <div className="stat-item">
-                  
                   <div className="stat-content">
                     <span className="stat-label">Price</span>
                     <span className="stat-value">€{props.price || '0'}</span>
@@ -127,7 +147,6 @@ export default function Favorites() {
                 </div>
 
                 <div className="stat-item">
-                 
                   <div className="stat-content">
                     <span className="stat-label">Duration</span>
                     <span className="stat-value">{props.time_required || '0'} min</span>
@@ -135,7 +154,6 @@ export default function Favorites() {
                 </div>
 
                 <div className="stat-item">
-                  
                   <div className="stat-content">
                     <span className="stat-label">Popularity</span>
                     <span className="stat-value">{props.popularity || '0'} visits</span>
@@ -143,6 +161,7 @@ export default function Favorites() {
                 </div>
               </div>
 
+              {/* Amenity tags */}
               <div className="card-amenities">
                 {props.child_friendly && (
                   <span className="amenity-tag child-friendly">Child Friendly</span>
@@ -152,6 +171,7 @@ export default function Favorites() {
                 )}
               </div>
 
+              {/* View on Map button - stores place in session storage for navigation */}
               <button
                 className="view-map-btn"
                 onClick={() => {

@@ -1,6 +1,19 @@
 import { useState } from 'react';
 import '../styles/Filters.scss';
 
+/**
+ * Filters Panel Component
+ * Displays filtering and search controls for places.
+ * Allows filtering by:
+ * - Category
+ * - Child friendly
+ * - Wheelchair accessibility
+ * - Nearby places (with distance slider)
+ * - Area/region
+ * 
+ * Shows filtered place list with search functionality.
+ * Supports adding/removing favorites.
+ */
 export default function Filters({ 
   filters, 
   setFilters, 
@@ -19,6 +32,9 @@ export default function Filters({
   console.log('Filters - categories:', categories, 'type:', typeof categories, 'isArray:', Array.isArray(categories));
   console.log('Filters - areas:', areas, 'type:', typeof areas, 'isArray:', Array.isArray(areas));
 
+  /**
+   * Handle search term change
+   */
   const handleSearch = (value) => {
     setSearchTerm(value);
   };
@@ -27,7 +43,7 @@ export default function Filters({
     <div className="filters-panel">
       <h3>Filter by:</h3>
 
-      {/* Category Filter */}
+      {/* Category filter dropdown */}
       <select 
         value={filters.category}
         onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
@@ -39,7 +55,7 @@ export default function Filters({
         ))}
       </select>
 
-      {/* Favorites Filter */}
+      {/* Favorites filter checkbox */}
       <label className="filter-checkbox">
         <input
           type="checkbox"
@@ -49,7 +65,7 @@ export default function Filters({
         Favorites❤️
       </label>
 
-      {/* Child Friendly Filter */}
+      {/* Child friendly filter checkbox */}
       <label className="filter-checkbox">
         <input
           type="checkbox"
@@ -59,7 +75,7 @@ export default function Filters({
         Child Friendly
       </label>
 
-      {/* Wheelchair Access Filter */}
+      {/* Wheelchair accessibility filter checkbox */}
       <label className="filter-checkbox">
         <input
           type="checkbox"
@@ -69,7 +85,7 @@ export default function Filters({
         Wheelchair Access
       </label>
 
-      {/* Nearby Filter */}
+      {/* Nearby places filter - triggers geolocation on enable */}
       <label className="filter-checkbox">
         <input
           type="checkbox"
@@ -77,7 +93,7 @@ export default function Filters({
           onChange={(e) => {
             if (e.target.checked) {
               setFilters(prev => ({ ...prev, nearbyOnly: true }));
-              onGetLocation();
+              onGetLocation();  // Request user's location
             } else {
               setFilters(prev => ({ ...prev, nearbyOnly: false }));
             }
@@ -86,6 +102,7 @@ export default function Filters({
         Nearby Places
       </label>
 
+      {/* Distance slider - only shown if "Nearby Places" is enabled */}
       {filters.nearbyOnly && (
         <div className="filter-input">
           <label>Within (km):</label>
@@ -100,7 +117,7 @@ export default function Filters({
         </div>
       )}
 
-      {/* Area Filter */}
+      {/* Area filter dropdown */}
       <select 
         value={filters.selectedArea || ''}
         onChange={(e) => setFilters(prev => ({ ...prev, selectedArea: e.target.value || null }))}
@@ -112,14 +129,14 @@ export default function Filters({
         ))}
       </select>
 
-      {/* Places List */}
+      {/* Filtered places list */}
       <div className="places-list">
         <h4>Places ({(filteredPlaces || []).filter(p => {
           const props = p.properties || p;
           return props.name.toLowerCase().includes(searchTerm.toLowerCase());
         }).length})</h4>
 
-        {/* Search Bar */}
+        {/* Search bar for place names */}
         <div className="filter-search">
           <input
             type="text"
@@ -130,6 +147,7 @@ export default function Filters({
           />
         </div>
 
+        {/* Loading state or place results */}
         {loading ? (
           <p className="status">Loading...</p>
         ) : (filteredPlaces || []).filter(p => {
@@ -138,6 +156,7 @@ export default function Filters({
         }).length === 0 ? (
           <p className="status">No places found</p>
         ) : (
+          // Place cards list
           (filteredPlaces || []).filter(p => {
             const props = p.properties || p;
             return props.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -157,6 +176,7 @@ export default function Filters({
                   <p className="desc">{properties.description?.substring(0, 50)}...</p>
                   <div className="place-card-footer">
                     <p className="price">€{properties.price}</p>
+                    {/* Star rating display */}
                     <div className="rating">
                       <span className="stars">
                         {'★'.repeat(Math.round(avgRating))}{'☆'.repeat(5 - Math.round(avgRating))}
@@ -167,6 +187,7 @@ export default function Filters({
                     </div>
                   </div>
                 </div>
+                {/* Favorite toggle button */}
                 <button 
                   className={`favorite-btn ${favorite ? 'favorited' : ''}`}
                   onClick={(e) => {

@@ -8,20 +8,32 @@ const API_BASE =
     ? 'https://dublin-guide.onrender.com/api'
     : 'http://localhost:8000/api';
 
+/**
+ * Place Details Modal Component
+ * Displays comprehensive information about a selected place.
+ * Shows ratings, reviews, accessibility info, pricing, and time required.
+ * Allows users to add or edit their own rating.
+ */
 export default function PlaceDetailsModal({ place, onClose, onRatingAdded }) {
   const [placeDetails, setPlaceDetails] = useState(null);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Fetch detailed place information when component mounts or place changes
   useEffect(() => {
     fetchPlaceDetails();
   }, [place.id]);
 
+  /**
+   * Fetch detailed place data from API
+   * Includes ratings, average rating, and user's own rating
+   */
   const fetchPlaceDetails = async () => {
     try {
       const response = await axios.get(`${API_BASE}/places/${place.id}/`);
       console.log('📋 Full API Response:', response.data);
       
+      // Handle both GeoJSON and regular responses
       const data = response.data.properties || response.data;
       console.log('📊 Processed data:', data);
       
@@ -38,6 +50,10 @@ export default function PlaceDetailsModal({ place, onClose, onRatingAdded }) {
     }
   };
 
+  /**
+   * Callback when rating is added/updated
+   * Refreshes place details to show new rating
+   */
   const handleRatingAdded = () => {
     fetchPlaceDetails();
     onRatingAdded();
@@ -65,11 +81,13 @@ export default function PlaceDetailsModal({ place, onClose, onRatingAdded }) {
           <button className="close-btn" onClick={onClose}>✕</button>
 
           <div className="modal-content">
+            {/* Place header with name and description */}
             <div className="place-header">
               <h1>{placeDetails.name}</h1>
               <p className="description">{placeDetails.description}</p>
             </div>
 
+            {/* Basic place info: price, time, popularity */}
             <div className="place-info">
               <div className="info-item">
                 <span className="label">Price:</span>
@@ -85,9 +103,11 @@ export default function PlaceDetailsModal({ place, onClose, onRatingAdded }) {
               </div>
             </div>
 
+            {/* Ratings and reviews section */}
             <div className="rating-section">
               <div className="rating-header">
                 <h2>Ratings</h2>
+                {/* Average rating display */}
                 <div className="rating-stats">
                   <span className="stars">
                     {'★'.repeat(Math.round(avgRating))}{'☆'.repeat(5 - Math.round(avgRating))}
@@ -96,6 +116,7 @@ export default function PlaceDetailsModal({ place, onClose, onRatingAdded }) {
                 </div>
               </div>
 
+              {/* User's own rating or button to add one */}
               {placeDetails.user_rating ? (
                 <div className="user-rating">
                   <p className="your-rating">Your Rating:</p>
@@ -125,7 +146,7 @@ export default function PlaceDetailsModal({ place, onClose, onRatingAdded }) {
                 </button>
               )}
 
-              {/* Other Reviews Section */}
+              {/* Other users' reviews section */}
               <div className="other-reviews">
                 <h3>Other Reviews:</h3>
                 {ratings.filter(r => r.user?.id !== placeDetails.user_rating?.user?.id).length > 0 ? (
@@ -146,6 +167,7 @@ export default function PlaceDetailsModal({ place, onClose, onRatingAdded }) {
               </div>
             </div>
 
+            {/* Accessibility tags */}
             <div className="modal-tags">
               {placeDetails.child_friendly && <span className="tag">Child Friendly</span>}
               {placeDetails.wheelchair_access && <span className="tag">Wheelchair Access</span>}
@@ -154,6 +176,7 @@ export default function PlaceDetailsModal({ place, onClose, onRatingAdded }) {
         </div>
       </div>
 
+      {/* Rating modal - shown when user clicks "Add" or "Edit" */}
       {showRatingModal && (
         <RatingModal
           place={place}

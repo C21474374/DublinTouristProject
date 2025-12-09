@@ -1,3 +1,9 @@
+/**
+ * Home Page Component
+ * Wrapper for the Map component
+ * Displays the interactive map explorer with all features
+ */
+
 import Map from '../components/Map';
 import '../styles/Map.scss';
 

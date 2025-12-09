@@ -1,3 +1,13 @@
+/**
+ * Signup Page Component
+ * 
+ * Allows new users to create an account
+ * Collects: username, email, password, first name, last name
+ * Validates password confirmation
+ * Redirects to home page on successful signup
+ * Includes theme toggle button
+ */
+
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -6,20 +16,29 @@ import { useTheme } from '../context/ThemeContext';
 import '../styles/Auth.scss';
 
 export default function Signup() {
+  // Form input state
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
-    password2: '',
+    password2: '',  // Confirmation password
     first_name: '',
     last_name: '',
   });
+  
+  // UI state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  // Hooks for navigation, authentication, and theme
   const navigate = useNavigate();
   const { register } = useAuth();
   const { isDark, toggleTheme } = useTheme();
 
+  /**
+   * Handle form input changes
+   * Updates formData state with new value
+   */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -28,17 +47,26 @@ export default function Signup() {
     }));
   };
 
+  /**
+   * Handle signup form submission
+   * Validates passwords match
+   * Calls register function from auth context
+   * On success, redirects to home page
+   * On failure, displays specific error messages
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
+    // Client-side validation: passwords must match
     if (formData.password !== formData.password2) {
       setError('Passwords do not match');
       setLoading(false);
       return;
     }
 
+    // Call auth register function with form data
     const result = await register(
       formData.username,
       formData.email,
@@ -49,18 +77,19 @@ export default function Signup() {
     );
 
     if (result.success) {
-      // Small delay to ensure state updates
+      // Small delay ensures auth state updates before navigation
       setTimeout(() => {
         navigate('/');
       }, 100);
     } else {
+      // Display specific error from API response
       const errorObj = result.error;
       if (errorObj.username) {
-        setError(errorObj.username[0]);
+        setError(errorObj.username[0]);  // Username already exists, etc
       } else if (errorObj.email) {
-        setError(errorObj.email[0]);
+        setError(errorObj.email[0]);  // Email already registered, etc
       } else if (errorObj.password) {
-        setError(errorObj.password[0]);
+        setError(errorObj.password[0]);  // Password too weak, etc
       } else {
         setError('Registration failed');
       }
@@ -71,6 +100,7 @@ export default function Signup() {
 
   return (
     <div className="auth-page">
+      {/* Floating theme toggle button (light/dark mode) */}
       <button 
         className="floating-theme-toggle"
         onClick={toggleTheme}
@@ -82,12 +112,15 @@ export default function Signup() {
 
       <div className="auth-container">
         <div className="auth-card">
+          {/* Header with app name and signup message */}
           <div className="auth-header">
             <h1>Dublin Guide</h1>
             <p>Create your account</p>
           </div>
 
+          {/* Signup form */}
           <form onSubmit={handleSubmit} className="auth-form">
+            {/* First and last name in side-by-side row */}
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="first_name">First Name</label>
@@ -113,6 +146,7 @@ export default function Signup() {
               </div>
             </div>
 
+            {/* Username input - must be unique */}
             <div className="form-group">
               <label htmlFor="username">Username</label>
               <input
@@ -126,6 +160,7 @@ export default function Signup() {
               />
             </div>
 
+            {/* Email input - must be valid and unique */}
             <div className="form-group">
               <label htmlFor="email">Email</label>
               <input
@@ -139,6 +174,7 @@ export default function Signup() {
               />
             </div>
 
+            {/* Password input */}
             <div className="form-group">
               <label htmlFor="password">Password</label>
               <input
@@ -152,6 +188,7 @@ export default function Signup() {
               />
             </div>
 
+            {/* Confirm password input - must match password field */}
             <div className="form-group">
               <label htmlFor="password2">Confirm Password</label>
               <input
@@ -165,8 +202,10 @@ export default function Signup() {
               />
             </div>
 
+            {/* Error message display */}
             {error && <div className="error-message">{error}</div>}
 
+            {/* Submit button */}
             <button 
               type="submit" 
               className="submit-btn"
@@ -176,6 +215,7 @@ export default function Signup() {
             </button>
           </form>
 
+          {/* Footer with login link */}
           <div className="auth-footer">
             <p>Already have an account? <Link to="/login">Login here</Link></p>
           </div>

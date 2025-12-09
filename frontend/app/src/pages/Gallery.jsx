@@ -1,3 +1,10 @@
+/**
+ * Gallery Page Component
+ * Displays user-uploaded photos organized by place
+ * Users can view, filter, and delete their photos
+ * Shows photo details including caption, uploader, and date
+ */
+
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../hooks/useAuth';
@@ -12,24 +19,28 @@ export default function Gallery() {
   const { token } = useAuth();
   const [photos, setPhotos] = useState([]);
   const [places, setPlaces] = useState([]);
-  const [selectedPlace, setSelectedPlace] = useState(null);
+  const [selectedPlace, setSelectedPlace] = useState(null);  // Currently filtering by this place
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [selectedPhoto, setSelectedPhoto] = useState(null);  // Photo detail modal
 
+  // Fetch places and all photos on mount
   useEffect(() => {
     fetchPlaces();
     fetchAllPhotos();
   }, []);
 
+  /**
+   * Fetch all places from API
+   * Handles both direct array and paginated responses
+   */
   const fetchPlaces = async () => {
     try {
       console.log('Fetching places...');
       const response = await axios.get(`${API_BASE}/places/`);
       console.log('Places response:', response.data);
       
-      // Handle both direct array and paginated responses
       let placesData = [];
       if (Array.isArray(response.data)) {
         placesData = response.data;
@@ -46,6 +57,9 @@ export default function Gallery() {
     }
   };
 
+  /**
+   * Fetch all photos from API (no filter)
+   */
   const fetchAllPhotos = async () => {
     try {
       setLoading(true);
@@ -53,7 +67,6 @@ export default function Gallery() {
       const response = await axios.get(`${API_BASE}/photos/`);
       console.log('Photos response:', response.data);
       
-      // Handle both direct array and paginated responses
       let photosData = [];
       if (Array.isArray(response.data)) {
         photosData = response.data;
@@ -71,13 +84,16 @@ export default function Gallery() {
     }
   };
 
+  /**
+   * Fetch photos for a specific place
+   * Filters by place_id query parameter
+   */
   const fetchPhotosForPlace = async (placeId) => {
     try {
       setLoading(true);
       const response = await axios.get(`${API_BASE}/photos/?place_id=${placeId}`);
       console.log('Photos for place response:', response.data);
       
-      // Handle both direct array and paginated responses
       let photosData = [];
       if (Array.isArray(response.data)) {
         photosData = response.data;
@@ -95,6 +111,10 @@ export default function Gallery() {
     }
   };
 
+  /**
+   * Delete a photo after confirmation
+   * Only owner can delete (verified by API)
+   */
   const deletePhoto = async (photoId) => {
     if (!window.confirm('Are you sure you want to delete this photo?')) return;
 
@@ -111,12 +131,14 @@ export default function Gallery() {
     }
   };
 
+  // Filter places based on search term
   const filteredPlaces = places.filter(place => {
     const props = place.properties || place;
     const name = props.name || '';
     return name.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
+  // Get current place details
   const currentPlace = places.find(p => {
     const props = p.properties || p;
     return (props.id || p.id) === selectedPlace;
@@ -126,6 +148,7 @@ export default function Gallery() {
 
   return (
     <div className="gallery-container">
+      {/* Page Header */}
       <div className="gallery-header">
         <h1>Gallery</h1>
         <p>View and manage photos from your favorite places</p>
@@ -134,6 +157,7 @@ export default function Gallery() {
       <div className="gallery-content">
         {/* Left Panel - Places List */}
         <div className="gallery-places-panel">
+          {/* Search places */}
           <div className="search-box">
             <input
               type="text"
@@ -143,7 +167,9 @@ export default function Gallery() {
             />
           </div>
 
+          {/* Places list with photo counts */}
           <div className="places-list">
+            {/* "All Places" button */}
             <button
               className={`place-item ${!selectedPlace ? 'active' : ''}`}
               onClick={() => {
@@ -157,6 +183,7 @@ export default function Gallery() {
               </span>
             </button>
 
+            {/* Individual place buttons */}
             {filteredPlaces.map((place) => {
               const props = place.properties || place;
               const placeId = props.id || place.id;
@@ -178,12 +205,14 @@ export default function Gallery() {
 
         {/* Right Panel - Photos Grid */}
         <div className="gallery-photos-panel">
+          {/* Place info header (if place selected) */}
           {selectedPlace && currentPlaceProps && (
             <div className="place-info">
               <h2>{currentPlaceProps.name}</h2>
               <p className="place-description">
                 {currentPlaceProps.description || 'No description available'}
               </p>
+              {/* Place rating display */}
               {currentPlaceProps.average_rating !== null && currentPlaceProps.average_rating !== undefined && currentPlaceProps.average_rating > 0 ? (
                 <div className="place-rating">
                   <span style={{ color: '#ffc107' }}>
@@ -200,6 +229,7 @@ export default function Gallery() {
             </div>
           )}
 
+          {/* Loading/Error/Empty states */}
           {loading ? (
             <div className="loading">Loading photos...</div>
           ) : error ? (
@@ -212,6 +242,7 @@ export default function Gallery() {
               </p>
             </div>
           ) : (
+            // Photos grid
             <div className="photos-grid">
               {photos.map((photo) => (
                 <div
@@ -253,8 +284,10 @@ export default function Gallery() {
               ✕
             </button>
 
+            {/* Photo image */}
             <img src={selectedPhoto.image} alt={selectedPhoto.caption} />
 
+            {/* Photo details */}
             <div className="modal-info">
               <h3>{selectedPhoto.place_name}</h3>
               {selectedPhoto.caption && (
@@ -267,6 +300,7 @@ export default function Gallery() {
                 Date/Time: {new Date(selectedPhoto.uploaded_at).toLocaleString()}
               </p>
 
+              {/* Delete button (only shown if user is authenticated) */}
               {token && (
                 <button
                   className="delete-btn"

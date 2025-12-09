@@ -8,6 +8,12 @@ const API_BASE =
     ? 'https://dublin-guide.onrender.com/api'
     : 'http://localhost:8000/api';
 
+/**
+ * Rating Modal Component
+ * Modal for users to submit, edit, or delete ratings for places.
+ * Shows star rating selector and optional comment textarea.
+ * Can create new ratings or update existing ones.
+ */
 export default function RatingModal({ place, onClose, onRatingAdded, userRating }) {
   const [stars, setStars] = useState(userRating?.stars || 0);
   const [comment, setComment] = useState(userRating?.comment || '');
@@ -15,6 +21,11 @@ export default function RatingModal({ place, onClose, onRatingAdded, userRating 
   const [error, setError] = useState('');
   const { token } = useAuth();
 
+  /**
+   * Submit rating to API
+   * If user already rated, updates existing rating with PATCH
+   * Otherwise creates new rating with POST
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -24,7 +35,7 @@ export default function RatingModal({ place, onClose, onRatingAdded, userRating 
       const placeId = place.id || place.properties?.id;
       
       if (userRating && userRating.id) {
-        // Update existing rating with PATCH
+        // Update existing rating
         await axios.patch(`${API_BASE}/ratings/${userRating.id}/`, {
           stars,
           comment,
@@ -43,7 +54,7 @@ export default function RatingModal({ place, onClose, onRatingAdded, userRating 
         console.log('✅ Rating created');
       }
 
-      onRatingAdded();
+      onRatingAdded();  // Refresh place details
       onClose();
     } catch (err) {
       console.error('Rating error:', err);
@@ -54,6 +65,10 @@ export default function RatingModal({ place, onClose, onRatingAdded, userRating 
     }
   };
 
+  /**
+   * Delete user's rating from API
+   * Requires confirmation before deleting
+   */
   const handleDelete = async () => {
     if (!userRating?.id || !window.confirm('Delete this rating?')) {
       setError('Cannot delete rating - ID missing');
@@ -64,7 +79,7 @@ export default function RatingModal({ place, onClose, onRatingAdded, userRating 
       await axios.delete(`${API_BASE}/ratings/${userRating.id}/`, {
         headers: { Authorization: `Token ${token}` }
       });
-      onRatingAdded();
+      onRatingAdded();  // Refresh place details
       onClose();
     } catch (err) {
       setError('Failed to delete rating');
@@ -74,12 +89,14 @@ export default function RatingModal({ place, onClose, onRatingAdded, userRating 
   return (
     <div className="rating-modal-overlay" onClick={onClose}>
       <div className="rating-modal" onClick={(e) => e.stopPropagation()}>
+        {/* Modal header */}
         <div className="modal-header">
           <h2>Rate {place.name || place.properties?.name}</h2>
           <button className="close-btn" onClick={onClose}>✕</button>
         </div>
 
         <form onSubmit={handleSubmit} className="rating-form">
+          {/* Star rating selector (1-5 stars) */}
           <div className="stars-section">
             <p>Rating:</p>
             <div className="stars">
@@ -97,6 +114,7 @@ export default function RatingModal({ place, onClose, onRatingAdded, userRating 
             <p className="stars-text">{stars} / 5 stars</p>
           </div>
 
+          {/* Optional comment textarea */}
           <div className="comment-section">
             <label htmlFor="comment">Comment (optional)</label>
             <textarea
@@ -108,13 +126,16 @@ export default function RatingModal({ place, onClose, onRatingAdded, userRating 
             />
           </div>
 
+          {/* Error message display */}
           {error && <div className="error-message">{error}</div>}
 
+          {/* Form action buttons */}
           <div className="modal-actions">
             <button type="submit" className="submit-btn" disabled={!stars || loading}>
               {loading ? 'Submitting...' : userRating ? 'Update Rating' : 'Submit Rating'}
             </button>
             
+            {/* Delete button only shows if editing existing rating */}
             {userRating && (
               <button 
                 type="button" 
