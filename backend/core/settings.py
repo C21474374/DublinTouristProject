@@ -160,4 +160,14 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
 
+# GDAL Configuration (works on Linux and Windows)
+import sys
+
+if 'win' not in sys.platform:  # Linux/Production
+    os.environ.setdefault('GDAL_LIBRARY_PATH', '/usr/lib/x86_64-linux-gnu')
+    os.environ.setdefault('PROJ_LIB', '/usr/share/proj')
+else:  # Windows (local development only)
+    os.environ.setdefault('GDAL_LIBRARY_PATH', os.path.join(os.environ.get('CONDA_PREFIX', ''), 'Library', 'bin'))
+    os.environ.setdefault('PROJ_LIB', os.path.join(os.environ.get('CONDA_PREFIX', ''), 'Library', 'share', 'proj'))
+
 

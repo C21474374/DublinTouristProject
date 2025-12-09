@@ -1,4 +1,4 @@
-asgiref==3.11.0
+asgiref==3.7.1
 Django==4.2.8
 djangorestframework==3.14.0
 django-cors-headers==4.3.1
@@ -14,7 +14,7 @@ whitenoise==6.6.0
 requests==2.32.5
 django-crispy-forms==2.3
 crispy-bootstrap5==2024.10
-djangorestframework-gis==1.2.0
+djangorestframework-gis==0.17
 geopy==2.4.0
 celery==5.3.4
 redis==5.0.1
