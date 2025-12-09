@@ -27,7 +27,12 @@ export default function Favorites() {
       const response = await axios.get(`${API_BASE}/favourites/`, {
         headers: { Authorization: `Token ${token}` }
       });
-      setFavorites(response.data);
+      // Fix: Handle paginated response
+      const favData = Array.isArray(response.data) 
+        ? response.data 
+        : response.data.results || [];
+      
+      setFavorites(favData);
     } catch (error) {
       console.error('Error fetching favourites:', error);
     } finally {
