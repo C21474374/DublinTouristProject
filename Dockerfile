@@ -48,19 +48,10 @@ COPY --from=frontend-builder /build/dist ./static
 # Copy the index.html to templates
 COPY --from=frontend-builder /build/dist/index.html ./templates/index.html
 
-# Run migrations
-RUN python manage.py migrate
-
-# Load sample data
-RUN python sample_data.py
-
-# Load Dublin areas
-RUN python load_dublin_only.py
-
 # Collect static files
 RUN python manage.py collectstatic --noinput --clear
 
 EXPOSE 8000
 
-# Run server
-CMD sh -c "gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 120"
+# Run migrations and load data when container starts
+CMD sh -c "python manage.py migrate && python sample_data.py && python load_dublin_only.py && gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 120"
