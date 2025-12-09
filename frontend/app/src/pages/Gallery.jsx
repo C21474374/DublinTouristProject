@@ -25,8 +25,20 @@ export default function Gallery() {
 
   const fetchPlaces = async () => {
     try {
+      console.log('Fetching places...');
       const response = await axios.get(`${API_BASE}/places/`);
-      const placesData = response.data.features || response.data;
+      console.log('Places response:', response.data);
+      
+      // Handle both direct array and paginated responses
+      let placesData = [];
+      if (Array.isArray(response.data)) {
+        placesData = response.data;
+      } else if (response.data.results && Array.isArray(response.data.results)) {
+        placesData = response.data.results;
+      } else if (response.data.features && Array.isArray(response.data.features)) {
+        placesData = response.data.features;
+      }
+      
       setPlaces(placesData);
     } catch (err) {
       console.error('Error fetching places:', err);
@@ -37,9 +49,20 @@ export default function Gallery() {
   const fetchAllPhotos = async () => {
     try {
       setLoading(true);
+      console.log('Fetching photos...');
       const response = await axios.get(`${API_BASE}/photos/`);
-      setPhotos(response.data);
-      console.log('📷 Photos loaded:', response.data);
+      console.log('Photos response:', response.data);
+      
+      // Handle both direct array and paginated responses
+      let photosData = [];
+      if (Array.isArray(response.data)) {
+        photosData = response.data;
+      } else if (response.data.results && Array.isArray(response.data.results)) {
+        photosData = response.data.results;
+      }
+      
+      setPhotos(photosData);
+      console.log('📷 Photos loaded:', photosData);
     } catch (err) {
       console.error('Error fetching photos:', err);
       setError('Failed to load photos');
@@ -52,7 +75,17 @@ export default function Gallery() {
     try {
       setLoading(true);
       const response = await axios.get(`${API_BASE}/photos/?place_id=${placeId}`);
-      setPhotos(response.data);
+      console.log('Photos for place response:', response.data);
+      
+      // Handle both direct array and paginated responses
+      let photosData = [];
+      if (Array.isArray(response.data)) {
+        photosData = response.data;
+      } else if (response.data.results && Array.isArray(response.data.results)) {
+        photosData = response.data.results;
+      }
+      
+      setPhotos(photosData);
       setSelectedPlace(placeId);
     } catch (err) {
       console.error('Error fetching photos:', err);
