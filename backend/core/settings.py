@@ -1,5 +1,6 @@
 """
-Django settings for core project.
+Django settings for Dublin Guide backend.
+Configures database, authentication, CORS, and API settings.
 """
 
 import os
@@ -9,18 +10,18 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load from .env - with defaults for local development
+# Environment variables with defaults for local development
 DEBUG = config('DEBUG', default=True, cast=bool)
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-dev-key-change-in-production')
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,dublin-guide.onrender.com').split(',')
 
-# CORS
+# CORS configuration - allows frontend to communicate with this API
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
     default='http://localhost:3000,http://localhost:5173,https://dublin-guide.onrender.com'
 ).split(',')
 
-# Application definition
+# Installed applications
 INSTALLED_APPS = [
     # Django default apps
     'django.contrib.admin',
@@ -29,23 +30,24 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.gis',
+    'django.contrib.gis',  # GeoDjango for PostGIS support
     
-    # Third-party apps
+    # Third-party packages
     'rest_framework',
-    'rest_framework.authtoken',
-    'corsheaders',
-    'rest_framework_gis',
+    'rest_framework.authtoken',  # Token authentication
+    'corsheaders',  # CORS support
+    'rest_framework_gis',  # GIS serializers for geographic data
     
-    # Your apps
+    # Project apps
     'places',
     'accounts',
 ]
 
+# Middleware stack - processes requests/responses
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Static file serving
+    'corsheaders.middleware.CorsMiddleware',  # CORS headers
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -56,6 +58,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'core.urls'
 
+# Template configuration
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -73,20 +76,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-# Database Configuration
+# Database configuration using PostgreSQL with PostGIS extension
 DATABASE_URL = config('DATABASE_URL', default=None)
 
-# For Render PostgreSQL with PostGIS
 DATABASES = {
     'default': dj_database_url.config(
         default='postgresql://localhost/tourist',
         conn_max_age=600,
-        # Use PostGIS backend
-        engine='django.contrib.gis.db.backends.postgis'
+        engine='django.contrib.gis.db.backends.postgis'  # PostGIS backend for geographic queries
     )
 }
 
-# Password validation
+# Password validation rules
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -108,17 +109,17 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# Static files - FIXED
+# Static files configuration for CSS, JS, images
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Media files
+# Media files configuration for user uploads
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# REST Framework
+# REST Framework configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
@@ -136,27 +137,27 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
 }
 
-# Default auto field
+# Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# CORS Settings
+# CORS settings
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
 
-# Production Settings
+# Production security settings
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
 
-# GDAL Configuration (works on Linux and Windows)
+# GDAL/PROJ configuration for PostGIS on different OS
 import sys
 
 if 'win' not in sys.platform:  # Linux/Production
     os.environ.setdefault('GDAL_LIBRARY_PATH', '/usr/lib/x86_64-linux-gnu')
     os.environ.setdefault('PROJ_LIB', '/usr/share/proj')
-else:  # Windows (local development only)
+else:  # Windows (local development)
     os.environ.setdefault('GDAL_LIBRARY_PATH', os.path.join(os.environ.get('CONDA_PREFIX', ''), 'Library', 'bin'))
     os.environ.setdefault('PROJ_LIB', os.path.join(os.environ.get('CONDA_PREFIX', ''), 'Library', 'share', 'proj'))
 

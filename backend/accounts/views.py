@@ -7,7 +7,6 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.authtoken.models import Token
 from rest_framework import serializers
-from rest_framework.decorators import api_view, permission_classes
 
 from .models import TouristProfile, FavouritePlace, PlacePhoto
 from .serializers import (
@@ -22,12 +21,11 @@ from .serializers import (
 from places.models import Place
 
 
-# ---------------------------------------------------
-# REGISTER
-# ---------------------------------------------------
 class RegisterAPIView(generics.CreateAPIView):
     """
-    POST /api/auth/register/
+    User registration endpoint.
+    Creates User, Token, and TouristProfile.
+    Returns token and user data.
     """
     serializer_class = UserRegisterSerializer
     permission_classes = [AllowAny]
@@ -43,12 +41,10 @@ class RegisterAPIView(generics.CreateAPIView):
         }, status=status.HTTP_201_CREATED)
 
 
-# ---------------------------------------------------
-# LOGIN
-# ---------------------------------------------------
 class LoginAPIView(generics.GenericAPIView):
     """
-    POST /api/auth/login/
+    User login endpoint.
+    Validates credentials and returns token.
     """
     serializer_class = UserLoginSerializer
     permission_classes = [AllowAny]
@@ -64,12 +60,10 @@ class LoginAPIView(generics.GenericAPIView):
         }, status=status.HTTP_200_OK)
 
 
-# ---------------------------------------------------
-# LOGOUT
-# ---------------------------------------------------
 class LogoutAPIView(generics.GenericAPIView):
     """
-    POST /api/auth/logout/
+    User logout endpoint.
+    Deletes the user's authentication token.
     """
     permission_classes = [IsAuthenticated]
 
@@ -78,12 +72,10 @@ class LogoutAPIView(generics.GenericAPIView):
         return Response({"detail": "Logged out successfully"}, status=status.HTTP_200_OK)
 
 
-# ---------------------------------------------------
-# CURRENT USER PROFILE
-# ---------------------------------------------------
 class MeProfileAPIView(generics.RetrieveAPIView):
     """
-    GET /api/profile/me/
+    Get current user's tourist profile.
+    Creates profile automatically if it doesn't exist.
     """
     serializer_class = TouristProfileSerializer
     permission_classes = [IsAuthenticated]
@@ -93,13 +85,10 @@ class MeProfileAPIView(generics.RetrieveAPIView):
         return profile
 
 
-# ---------------------------------------------------
-# FAVORITES: LIST + ADD
-# ---------------------------------------------------
 class FavouriteListCreateAPIView(generics.ListCreateAPIView):
     """
-    GET  /api/favourites/
-    POST /api/favourites/  { "place": 1 }
+    List user's favorite places and add new favorites.
+    Prevents duplicate favorites for the same place.
     """
     serializer_class = FavouritePlaceSerializer
     permission_classes = [IsAuthenticated]
@@ -118,6 +107,7 @@ class FavouriteListCreateAPIView(generics.ListCreateAPIView):
         except Place.DoesNotExist:
             raise serializers.ValidationError({"place": "Place not found"})
         
+        # Check if already in favorites
         existing = FavouritePlace.objects.filter(user=self.request.user, place=place).first()
         if existing:
             raise serializers.ValidationError({"place": "Already in favorites"})
@@ -125,13 +115,10 @@ class FavouriteListCreateAPIView(generics.ListCreateAPIView):
         serializer.save(user=self.request.user, place=place)
 
 
-# ---------------------------------------------------
-# SINGLE FAVORITE: DELETE
-# ---------------------------------------------------
 class FavouriteDetailAPIView(generics.RetrieveDestroyAPIView):
     """
-    GET    /api/favourites/<place_id>/
-    DELETE /api/favourites/<place_id>/
+    View or delete a specific favorite place.
+    Only the user who added it can delete it.
     """
     serializer_class = FavouritePlaceSerializer
     permission_classes = [IsAuthenticated]
@@ -144,14 +131,11 @@ class FavouriteDetailAPIView(generics.RetrieveDestroyAPIView):
         return get_object_or_404(FavouritePlace, user=self.request.user, place_id=place_id)
 
 
-# ---------------------------------------------------
-# PLACE PHOTOS: LIST + UPLOAD
-# ---------------------------------------------------
 class PlacePhotoListCreateAPIView(generics.ListCreateAPIView):
     """
-    GET  /api/photos/
-    GET  /api/photos/?place_id=1
-    POST /api/photos/  (multipart form with image + caption)
+    List place photos and upload new ones.
+    Supports filtering by place_id query parameter.
+    Requires multipart form data for image upload.
     """
     serializer_class = PlacePhotoSerializer
     permission_classes = [IsAuthenticated]
@@ -160,6 +144,7 @@ class PlacePhotoListCreateAPIView(generics.ListCreateAPIView):
     def get_queryset(self):
         queryset = PlacePhoto.objects.all().select_related('user', 'place')
         
+        # Filter by place if place_id parameter provided
         place_id = self.request.query_params.get('place_id')
         if place_id:
             queryset = queryset.filter(place_id=place_id)
@@ -177,17 +162,13 @@ class PlacePhotoListCreateAPIView(generics.ListCreateAPIView):
         except Place.DoesNotExist:
             raise serializers.ValidationError({"place": "Place not found"})
         
-        # Pass both user AND place
         serializer.save(user=self.request.user, place=place)
 
 
-# ---------------------------------------------------
-# SINGLE PHOTO: RETRIEVE / DELETE
-# ---------------------------------------------------
 class PlacePhotoDetailAPIView(generics.RetrieveDestroyAPIView):
     """
-    GET    /api/photos/<id>/
-    DELETE /api/photos/<id>/
+    View or delete a specific photo.
+    Only the user who uploaded it can delete it.
     """
     serializer_class = PlacePhotoSerializer
     permission_classes = [IsAuthenticated]
@@ -201,12 +182,9 @@ class PlacePhotoDetailAPIView(generics.RetrieveDestroyAPIView):
         instance.delete()
 
 
-# ---------------------------------------------------
-# USER DETAIL
-# ---------------------------------------------------
 class UserDetailAPIView(generics.RetrieveAPIView):
     """
-    GET /api/auth/user/
+    Get current authenticated user's details.
     """
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
@@ -215,12 +193,10 @@ class UserDetailAPIView(generics.RetrieveAPIView):
         return self.request.user
 
 
-# ---------------------------------------------------
-# UPDATE USER PROFILE
-# ---------------------------------------------------
 class UserUpdateAPIView(generics.UpdateAPIView):
     """
-    PATCH /api/users/<id>/
+    Update current user's profile information.
+    Can update username, email, first_name, last_name.
     """
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
@@ -236,17 +212,10 @@ class UserUpdateAPIView(generics.UpdateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-# ---------------------------------------------------
-# CHANGE PASSWORD
-# ---------------------------------------------------
 class ChangePasswordAPIView(generics.GenericAPIView):
     """
-    POST /api/change-password/
-    {
-        "old_password": "current_password",
-        "new_password": "new_password",
-        "new_password2": "new_password"
-    }
+    Change user's password.
+    Requires old password verification and new passwords must match.
     """
     serializer_class = ChangePasswordSerializer
     permission_classes = [IsAuthenticated]
