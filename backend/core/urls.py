@@ -6,19 +6,13 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-
-    # API endpoints
     path("api/", include("places.urls")),
     path("api/", include("accounts.urls")),
     path("api-auth/", include("rest_framework.urls")),
-    
-    # Catch-all for frontend - serves index.html for all non-API routes
     path("", TemplateView.as_view(template_name="index.html"), name="home"),
 ]
 
-# Media (uploads)
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-# Serve static files in development
+# Serve static files in DEBUG mode
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
