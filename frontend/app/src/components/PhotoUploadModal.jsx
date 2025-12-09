@@ -2,7 +2,10 @@ import { useState } from 'react';
 import axios from 'axios';
 import '../styles/PhotoUploadModal.scss';
 
-const API_BASE = 'http://localhost:8000/api';
+const API_BASE = 
+  process.env.NODE_ENV === 'production'
+    ? 'https://dublin-guide.onrender.com/api'
+    : 'http://localhost:8000/api';
 
 export default function PhotoUploadModal({ place, token, onClose, onUploadSuccess }) {
   const [selectedFiles, setSelectedFiles] = useState([]);

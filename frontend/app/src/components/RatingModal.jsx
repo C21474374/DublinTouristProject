@@ -3,7 +3,10 @@ import axios from 'axios';
 import { useAuth } from '../hooks/useAuth';
 import '../styles/RatingModal.scss';
 
-const API_BASE = 'http://localhost:8000/api';
+const API_BASE = 
+  process.env.NODE_ENV === 'production'
+    ? 'https://dublin-guide.onrender.com/api'
+    : 'http://localhost:8000/api';
 
 export default function RatingModal({ place, onClose, onRatingAdded, userRating }) {
   const [stars, setStars] = useState(userRating?.stars || 0);

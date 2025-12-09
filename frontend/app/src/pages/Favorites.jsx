@@ -4,7 +4,10 @@ import axios from 'axios';
 import { useAuth } from '../hooks/useAuth';
 import '../styles/Favorites.scss';
 
-const API_BASE = 'http://localhost:8000/api';
+const API_BASE = 
+  process.env.NODE_ENV === 'production'
+    ? 'https://dublin-guide.onrender.com/api'
+    : 'http://localhost:8000/api';
 
 export default function Favorites() {
   const { token } = useAuth();

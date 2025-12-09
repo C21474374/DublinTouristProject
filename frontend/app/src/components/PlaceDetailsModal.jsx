@@ -3,7 +3,10 @@ import axios from 'axios';
 import RatingModal from './RatingModal';
 import '../styles/PlaceDetailsModal.scss';
 
-const API_BASE = 'http://localhost:8000/api';
+const API_BASE = 
+  process.env.NODE_ENV === 'production'
+    ? 'https://dublin-guide.onrender.com/api'
+    : 'http://localhost:8000/api';
 
 export default function PlaceDetailsModal({ place, onClose, onRatingAdded }) {
   const [placeDetails, setPlaceDetails] = useState(null);

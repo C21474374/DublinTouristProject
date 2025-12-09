@@ -12,7 +12,10 @@ import Filters from './Filters';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
 
-const API_BASE = 'http://localhost:8000/api';
+const API_BASE = 
+  process.env.NODE_ENV === 'production'
+    ? 'https://dublin-guide.onrender.com/api'
+    : 'http://localhost:8000/api';
 
 export default function Map() {
   const mapContainerRef = useRef(null);
@@ -560,7 +563,7 @@ export default function Map() {
 
   const fetchAreas = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/areas/');
+      const response = await fetch(`${API_BASE}/areas/`);
       const data = await response.json();
       setAreas(Array.isArray(data) ? data : data.results || []);
     } catch (error) {

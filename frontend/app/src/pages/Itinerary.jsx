@@ -5,7 +5,10 @@ import L from 'leaflet';
 import { useAuth } from '../hooks/useAuth';
 import '../styles/Itinerary.scss';
 
-const API_BASE = 'http://localhost:8000/api';
+const API_BASE = 
+  process.env.NODE_ENV === 'production'
+    ? 'https://dublin-guide.onrender.com/api'
+    : 'http://localhost:8000/api';
 
 // Fix Leaflet icon
 delete L.Icon.Default.prototype._getIconUrl;
