@@ -16,6 +16,9 @@ export default function Filters({
 }) {
   const [searchTerm, setSearchTerm] = useState('');
 
+  console.log('Filters - categories:', categories, 'type:', typeof categories, 'isArray:', Array.isArray(categories));
+  console.log('Filters - areas:', areas, 'type:', typeof areas, 'isArray:', Array.isArray(areas));
+
   const handleSearch = (value) => {
     setSearchTerm(value);
   };
@@ -31,7 +34,7 @@ export default function Filters({
         className="filter-select"
       >
         <option value="">All Categories</option>
-        {categories.map(cat => (
+        {(categories || []).map(cat => (
           <option key={cat.id} value={cat.id}>{cat.name}</option>
         ))}
       </select>
@@ -104,14 +107,14 @@ export default function Filters({
         className="filter-select"
       >
         <option value="">All Areas</option>
-        {areas.map(area => (
+        {(areas || []).map(area => (
           <option key={area.id} value={area.id}>{area.name}</option>
         ))}
       </select>
 
       {/* Places List */}
       <div className="places-list">
-        <h4>Places ({filteredPlaces.filter(p => {
+        <h4>Places ({(filteredPlaces || []).filter(p => {
           const props = p.properties || p;
           return props.name.toLowerCase().includes(searchTerm.toLowerCase());
         }).length})</h4>
@@ -129,13 +132,13 @@ export default function Filters({
 
         {loading ? (
           <p className="status">Loading...</p>
-        ) : filteredPlaces.filter(p => {
+        ) : (filteredPlaces || []).filter(p => {
           const props = p.properties || p;
           return props.name.toLowerCase().includes(searchTerm.toLowerCase());
         }).length === 0 ? (
           <p className="status">No places found</p>
         ) : (
-          filteredPlaces.filter(p => {
+          (filteredPlaces || []).filter(p => {
             const props = p.properties || p;
             return props.name.toLowerCase().includes(searchTerm.toLowerCase());
           }).map((place, idx) => {
