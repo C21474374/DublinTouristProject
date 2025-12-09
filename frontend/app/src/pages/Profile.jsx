@@ -38,15 +38,23 @@ export default function Profile() {
 
   const fetchStats = async () => {
     try {
+      setLoading(true);
+      
       // Get photos
       const photosRes = await axios.get(`${API_BASE}/photos/`, {
         headers: { Authorization: `Token ${token}` }
       });
+      const photosCount = Array.isArray(photosRes.data) 
+        ? photosRes.data.length 
+        : (photosRes.data.results?.length || 0);
 
       // Get favorites
       const favRes = await axios.get(`${API_BASE}/favourites/`, {
         headers: { Authorization: `Token ${token}` }
       });
+      const favsCount = Array.isArray(favRes.data) 
+        ? favRes.data.length 
+        : (favRes.data.results?.length || 0);
 
       // Get ratings from places
       let ratingCount = 0;
@@ -55,30 +63,31 @@ export default function Profile() {
           headers: { Authorization: `Token ${token}` }
         });
 
-        // PlaceDetailSerializer returns ratings in the data
-        const places = placesRes.data;
+        const places = Array.isArray(placesRes.data) 
+          ? placesRes.data 
+          : (placesRes.data.results || []);
         
-        if (Array.isArray(places)) {
-          places.forEach(place => {
-            const ratings = place.ratings || [];
-            if (Array.isArray(ratings)) {
-              ratingCount += ratings.filter(r => r.user === user?.id).length;
-            }
-          });
-        }
+        places.forEach(place => {
+          const ratings = place.ratings || [];
+          if (Array.isArray(ratings)) {
+            ratingCount += ratings.filter(r => r.user === user?.id).length;
+          }
+        });
       } catch (placesErr) {
         console.error('Error fetching places:', placesErr);
       }
 
-      console.log('Stats:', { photos: photosRes.data.length, favorites: favRes.data.length, ratings: ratingCount });
+      console.log('Stats:', { photos: photosCount, favorites: favsCount, ratings: ratingCount });
 
       setStats({
-        photos: photosRes.data.length || 0,
-        favorites: favRes.data.length || 0,
+        photos: photosCount,
+        favorites: favsCount,
         ratings: ratingCount,
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
