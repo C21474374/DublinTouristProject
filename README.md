@@ -1,5 +1,8 @@
 # DublinGuide
 
+Name: Demetry Reece-Okic
+Student Number: C21474374
+
 
 ## Link to deployment
 https://dublin-guide.onrender.com/
@@ -74,7 +77,58 @@ User(Tourist) features:
 # Screenshots of deployed system:
 
 
+## Main map page:
+![alt text](image-1.png)
 
+## Main map page light mode:
+![alt text](image-13.png)
 
-offline mode 
+## Filters selected:
+![alt text](image-2.png)
+
+## Filter by area
+![alt text](image-5.png)
+
+## Directions:
+![alt text](image-3.png)
+
+## Add Photo:
+![alt text](image-4.png)
+
+## Places modal:
+![alt text](image-6.png)
+
+## Add Rating
+![alt text](image-7.png)
+
+## Itinerary page
+![alt text](image-9.png)
+
+## View saved Itinerary
+![alt text](image-10.png)
+
+## Favourites page
+![alt text](image-8.png)
+
+## Gallery page
+![alt text](image-11.png)
+
+## Account page
+![alt text](image-12.png)
+
+## Login Page
+![alt text](image-14.png)
+
+## Signup Page
+![alt text](image-15.png)
+
+## Offline mode 
 ![alt text](image.png)
+
+## PWA
+![alt text](1000026173.jpg)
+![alt text](1000026176.jpg)
+
+## Mobile view
+![alt text](1000026177.jpg)
+![alt text](1000026178.jpg)
